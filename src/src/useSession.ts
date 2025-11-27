@@ -1,23 +1,38 @@
-import { useQuery, UseQueryResult } from '@tanstack/react-query'
-import { QueryNames } from './lib/hooks/QueryConstants'
-import { SessionData } from './lib/session-utils'
+import { useAuth } from '@/context/AuthContext'
+import { SessionData } from './lib/definitions'
 
 /**
- * Custom hook to get the session from the `/session` endpoint.
- * The session can only be modified on the server, so this hook is used in all client components to get the session.
+ * Custom hook to get session data.
+ * This is the REWRITTEN version for the SPA architecture.
  *
- * This hook uses `useQuery` with `refetchOnWindowFocus` to ensure the client session is updated with the server session.
+ * It reads authentication state from the `useAuth` hook (which is backed by localStorage and oidc-client-ts)
+ * and transforms it into the `SessionData` format that older components expect.
+ * This acts as a compatibility layer, removing the need for network requests to `/session`.
  *
- * @returns {UseQueryResult<SessionData, Error>} - The result of the query containing the session data.
+ * @returns An object mimicking the structure of `UseQueryResult` for compatibility.
  */
+export default function useSession() {
+  const { user, isLoading, tenantId } = useAuth()
 
-export default function useSession(): UseQueryResult<SessionData, Error> {
-  return useQuery({
-    queryKey: [QueryNames.GetSession],
-    queryFn: async () => {
-      const response = await fetch('/session')
-      return (await response.json()) as SessionData
-    },
-    refetchOnWindowFocus: true,
-  })
+  // Construct the SessionData object from the user object provided by oidc-client-ts
+  const sessionData: SessionData | undefined = user
+    ? {
+        isLoggedIn: true,
+        access_token: user.access_token,
+        userInfo: {
+          sub: user.profile.sub!,
+          name: user.profile.given_name || user.profile.name || '',
+          email: user.profile.email || '',
+          email_verified: user.profile.email_verified || false,
+        },
+        tenantId: tenantId,
+      }
+    : undefined
+
+  // Return an object that looks like a `useQuery` result for compatibility
+  return {
+    data: sessionData,
+    isLoading,
+    error: null, // Assuming no error state to manage for now
+  }
 }

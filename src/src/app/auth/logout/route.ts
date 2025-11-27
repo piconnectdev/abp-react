@@ -1,4 +1,4 @@
-import { clientConfig } from '@/config'
+import { authClientConfig } from '@/config'
 import { getSession } from '@/lib/actions'
 import { RedisSession, createRedisInstance } from '@/lib/redis'
 import { defaultSession, getClientConfig } from '@/lib/session-utils'
@@ -27,7 +27,7 @@ export async function GET() {
   const parsedSessionData = JSON.parse(redisSessionData!) as RedisSession
   const openIdClientConfig = await getClientConfig()
   const endSessionUrl = client.buildEndSessionUrl(openIdClientConfig, {
-    post_logout_redirect_uri: clientConfig.post_logout_redirect_uri,
+    post_logout_redirect_uri: authClientConfig.post_logout_redirect_uri,
     id_token_hint: parsedSessionData.access_token,
   })
   session.isLoggedIn = defaultSession.isLoggedIn

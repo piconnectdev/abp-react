@@ -1,19 +1,15 @@
-import AdminLayout from '@/layout/admin-layout'
-import { setUpLayoutConfig } from '@/lib/auth'
+'use client'
+
+import { withProtectedRoute } from '@/components/ProtectedRoute'
+import AdminLayoutComponent from '@/layout/admin-layout' // Giả sử component layout chính của bạn ở đây
 import React from 'react'
 
-// Force dynamic rendering for admin pages since they use cookies and server-side features
-export const dynamic = 'force-dynamic'
-
-/**
- * AdminRootLayout component serves as the root layout for the admin section of the application.
- * It wraps its children with the AdminLayout component.
- *
- * @param {Object} props - The properties object.
- * @param {React.ReactNode} props.children - The child components to be rendered within the AdminLayout.
- * @returns {React.ReactElement} The rendered AdminLayout component with children.
- */
-export default async function AdminRootLayout({ children }: { children: React.ReactNode }) {
-  await setUpLayoutConfig()
-  return <AdminLayout>{children}</AdminLayout>
+function ProtectedAdminLayout({ children }: { children: React.ReactNode }) {
+  // Component này chỉ đơn giản là render AdminLayoutComponent với children
+  // Toàn bộ logic bảo vệ đã được xử lý bởi HOC
+  return <AdminLayoutComponent>{children}</AdminLayoutComponent>
 }
+
+// Bọc layout của bạn với HOC `withProtectedRoute`
+// Tùy chọn { checkTenant: true } yêu cầu người dùng phải chọn tenant để vào trang admin
+export default withProtectedRoute(ProtectedAdminLayout)

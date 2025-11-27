@@ -1,4 +1,4 @@
-import { clientConfig } from '@/config'
+import { authClientConfig } from '@/config'
 import * as client from 'openid-client'
 
 /**
@@ -42,7 +42,7 @@ export const defaultSession: SessionData = {
  * @returns {Promise<any>} The client configuration.
  */
 export async function getClientConfig() {
-  return await client.discovery(new URL(clientConfig.url!), clientConfig.client_id!)
+  return await client.discovery(new URL(authClientConfig.url!), authClientConfig.client_id!)
 }
 
 /**
@@ -57,10 +57,12 @@ export function isValidTenantId(tenantId: any): boolean {
   if (typeof tenantId === 'object') return false
   if (typeof tenantId === 'string') {
     const trimmed = tenantId.trim()
-    return trimmed !== '' && 
-           trimmed !== 'null' && 
-           trimmed !== 'undefined' && 
-           trimmed !== '[object Object]'
+    return (
+      trimmed !== '' &&
+      trimmed !== 'null' &&
+      trimmed !== 'undefined' &&
+      trimmed !== '[object Object]'
+    )
   }
   return true
 }

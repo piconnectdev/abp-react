@@ -1,8 +1,12 @@
+'use client' // Đánh dấu đây là một Client Component
+
 import { abpApplicationConfigurationGet, ApplicationConfigurationDto } from '@/client'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
+import useSession from '@/useSession'
+import { useQuery } from '@tanstack/react-query'
 import {
   Building,
   CheckCircle,
@@ -15,23 +19,31 @@ import {
   XCircle,
 } from 'lucide-react'
 
-// Force dynamic rendering since this page uses server-side API calls and authentication
-export const dynamic = 'force-dynamic'
-
 /**
  * The AdminIndex component is an asynchronous function that fetches the application configuration
  * and displays a comprehensive admin dashboard with user information and system status.
- * Next.js will automatically show the loading.tsx component while this page is loading.
  *
  * @returns A React component that renders a modern admin dashboard with user details and system information.
  */
-export default async function AdminIndex() {
-  const response = await abpApplicationConfigurationGet()
-  let appConfig = response.data as ApplicationConfigurationDto
+export default function AdminIndex() {
+  // Sử dụng useQuery để lấy dữ liệu ở phía client
+  const { data: fetchedAppConfig, isLoading } = useQuery<ApplicationConfigurationDto>({
+    queryKey: ['AbpApplicationConfiguration'],
+    queryFn: async () => {
+      const response = await abpApplicationConfigurationGet()
+      return response.data
+    },
+  })
 
-  // Provide fallback data if appConfig is null or undefined
-  if (!appConfig) {
-    appConfig = {
+  // Sử dụng hook useSession mới để lấy thông tin người dùng
+  const { data: session } = useSession()
+
+  const currentUser = session?.userInfo
+
+  // Tạo một biến mới để chứa appConfig, sử dụng dữ liệu thật hoặc đối tượng dự phòng
+  const appConfig =
+    fetchedAppConfig ||
+    ({
       localization: undefined,
       auth: undefined,
       setting: undefined,
@@ -44,11 +56,14 @@ export default async function AdminIndex() {
       clock: undefined,
       objectExtensions: undefined,
       extraProperties: undefined,
-    } as ApplicationConfigurationDto
+    } as ApplicationConfigurationDto)
+
+  if (isLoading) {
+    return <div>Loading application configuration...</div>
   }
-
-  const currentUser = appConfig?.currentUser
-
+  if (!session) {
+    return <div>Loading user session...</div>
+  }
   const getInitials = (name?: string | null, surname?: string | null) => {
     const first = name?.charAt(0) || ''
     const last = surname?.charAt(0) || ''
@@ -77,7 +92,7 @@ export default async function AdminIndex() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-gray-50">
-            Welcome back, {currentUser?.name || 'Administrator'}
+            Welcome back, {session?.userInfo?.name || 'Administrator'}
           </h1>
           <p className="text-muted-foreground mt-2">
             Here&apos;s what&apos;s happening with your system today.
@@ -103,26 +118,25 @@ export default async function AdminIndex() {
         <CardContent className="space-y-4">
           <div className="flex items-center space-x-4">
             <Avatar className="h-16 w-16">
-              <AvatarImage src="" alt={currentUser?.name || 'User'} />
+              <AvatarImage src="" alt={session?.userInfo?.name || 'User'} />
               <AvatarFallback className="text-lg">
-                {getInitials(currentUser?.name, currentUser?.surName)}
+                {getInitials(session?.userInfo?.name)}
               </AvatarFallback>
             </Avatar>
             <div className="flex-1 space-y-1">
-              <h3 className="text-lg font-semibold">
-                {currentUser?.name} {currentUser?.surName}
-              </h3>
+              <h3 className="text-lg font-semibold">{session?.userInfo?.name}</h3>
               <p className="text-sm text-muted-foreground flex items-center gap-1">
                 <Mail className="h-3 w-3" />
-                {currentUser?.email || 'No email provided'}
+                {session?.userInfo?.email || 'No email provided'}
               </p>
               <p className="text-sm text-muted-foreground">
-                Username: {currentUser?.userName || 'N/A'}
+                {/* Giả sử username là email, hoặc bạn có thể thêm vào SessionData nếu cần */}
+                Username: {session?.userInfo?.email || 'N/A'}
               </p>
             </div>
             <div className="text-right">
-              <Badge variant={currentUser?.isAuthenticated ? 'default' : 'destructive'}>
-                {currentUser?.isAuthenticated ? 'Authenticated' : 'Not Authenticated'}
+              <Badge variant={session?.isLoggedIn ? 'default' : 'destructive'}>
+                {session?.isLoggedIn ? 'Authenticated' : 'Not Authenticated'}
               </Badge>
             </div>
           </div>
@@ -136,13 +150,13 @@ export default async function AdminIndex() {
                 <span className="text-sm font-medium">Email Verification</span>
               </div>
               <div className="flex items-center gap-2">
-                {currentUser?.emailVerified ? (
+                {session?.userInfo?.email_verified ? (
                   <CheckCircle className="h-4 w-4 text-green-500" />
                 ) : (
                   <XCircle className="h-4 w-4 text-red-500" />
                 )}
                 <span className="text-sm">
-                  {currentUser?.emailVerified ? 'Verified' : 'Not Verified'}
+                  {session?.userInfo?.email_verified ? 'Verified' : 'Not Verified'}
                 </span>
               </div>
             </div>
@@ -153,19 +167,18 @@ export default async function AdminIndex() {
                 <span className="text-sm font-medium">Phone Verification</span>
               </div>
               <div className="flex items-center gap-2">
-                {currentUser?.phoneNumberVerified ? (
+                {/* Thông tin này không có trong OIDC claims mặc định, cần thêm vào nếu có */}
+                {false ? (
                   <CheckCircle className="h-4 w-4 text-green-500" />
                 ) : (
                   <XCircle className="h-4 w-4 text-red-500" />
                 )}
-                <span className="text-sm">
-                  {currentUser?.phoneNumberVerified ? 'Verified' : 'Not Verified'}
-                </span>
+                <span className="text-sm">{false ? 'Verified' : 'Not Verified'}</span>
               </div>
             </div>
           </div>
 
-          {currentUser?.roles && currentUser.roles.length > 0 && (
+          {appConfig?.currentUser?.roles && appConfig.currentUser.roles.length > 0 && (
             <>
               <Separator />
               <div className="space-y-2">
@@ -174,7 +187,7 @@ export default async function AdminIndex() {
                   <span className="text-sm font-medium">Roles</span>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  {currentUser.roles.map((role, index) => (
+                  {appConfig.currentUser.roles.map((role, index) => (
                     <Badge key={index} variant="secondary">
                       {role}
                     </Badge>
@@ -228,12 +241,10 @@ export default async function AdminIndex() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {currentUser?.sessionId ? 'Active' : 'No Session'}
+              {session?.isLoggedIn ? 'Active' : 'No Session'}
             </div>
             <p className="text-xs text-muted-foreground">
-              {currentUser?.sessionId
-                ? 'Session ID: ' + currentUser.sessionId.substring(0, 8) + '...'
-                : 'No active session'}
+              {session?.isLoggedIn ? 'User is authenticated' : 'No active session'}
             </p>
           </CardContent>
         </Card>

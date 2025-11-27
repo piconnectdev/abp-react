@@ -1,0 +1,227 @@
+'use client'
+
+import {
+  GetPermissionListResultDto,
+  permissionsGet,
+  permissionsUpdate,
+  UpdatePermissionsDto,
+  userGet,
+} from '@/client'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Skeleton } from '@/components/ui/skeleton'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { useToast } from '@/components/ui/use-toast'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { AlertTriangle, ArrowLeft, Save, Search, X } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { useEffect, useState } from 'react'
+
+interface PermissionManagementProps {
+  entityType: 'role' | 'user'
+  entityId: string
+}
+
+interface PermissionState {
+  [key: string]: boolean
+}
+
+export default function PermissionManagement({ entityType, entityId }: PermissionManagementProps) {
+  const router = useRouter()
+  const [searchTerm, setSearchTerm] = useState('')
+  const [activeTab, setActiveTab] = useState<string>('')
+  const [modifiedPermissions, setModifiedPermissions] = useState<PermissionState>({})
+  const { toast } = useToast()
+  const queryClient = useQueryClient()
+
+  const providerName = entityType === 'user' ? 'U' : 'R'
+
+  // Fetch user data to display name (if entityType is user)
+  const { data: userData, isLoading: isUserLoading } = useQuery({
+    queryKey: ['user', entityId],
+    queryFn: () => userGet({ id: entityId }),
+    enabled: entityType === 'user',
+  })
+
+  // Fetch permissions
+  const {
+    data: permissionData,
+    isLoading: isPermissionsLoading,
+    error,
+  } = useQuery<GetPermissionListResultDto>({
+    queryKey: ['permissions', providerName, entityId],
+    queryFn: async () => {
+      const response = await permissionsGet({ providerName, providerKey: entityId })
+      return response.data
+    },
+  })
+
+  // Set the active tab to the first permission group once data is loaded
+  useEffect(() => {
+    if (permissionData?.groups && permissionData.groups.length > 0 && !activeTab) {
+      setActiveTab(permissionData.groups[0].name!)
+    }
+  }, [permissionData, activeTab])
+
+  const handlePermissionChange = (permissionName: string, isGranted: boolean) => {
+    setModifiedPermissions((prev) => ({
+      ...prev,
+      [permissionName]: isGranted,
+    }))
+  }
+
+  const mutation = useMutation({
+    mutationFn: (newPermissions: UpdatePermissionsDto) =>
+      permissionsUpdate({ providerName, providerKey: entityId, body: newPermissions }),
+    onSuccess: () => {
+      toast({
+        title: 'Success',
+        description: 'Permissions have been updated successfully.',
+        variant: 'default',
+      })
+      setModifiedPermissions({})
+      queryClient.invalidateQueries({ queryKey: ['permissions', providerName, entityId] })
+    },
+    onError: (err: any) => {
+      toast({
+        title: 'Error',
+        description: err.message || 'Failed to update permissions.',
+        variant: 'destructive',
+      })
+    },
+  })
+
+  const handleSave = () => {
+    const permissionsToUpdate = Object.entries(modifiedPermissions).map(([name, isGranted]) => ({
+      name,
+      isGranted,
+    }))
+    mutation.mutate({ permissions: permissionsToUpdate })
+  }
+
+  const filteredGroups = permissionData?.groups?.map((group) => ({
+    ...group,
+    permissions: group.permissions?.filter((p) =>
+      p.displayName?.toLowerCase().includes(searchTerm.toLowerCase())
+    ),
+  }))
+
+  const entityName = entityType === 'user' ? userData?.data.name || entityId : `Role: ${entityId}`
+
+  if (isPermissionsLoading || isUserLoading) {
+    return (
+      <div className="p-6 space-y-4">
+        <Skeleton className="h-8 w-1/4" />
+        <Skeleton className="h-10 w-full" />
+        <div className="space-y-2">
+          <Skeleton className="h-6 w-full" />
+          <Skeleton className="h-6 w-3/4" />
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <Alert variant="destructive">
+        <AlertTriangle className="h-4 w-4" />
+        <AlertTitle>Error</AlertTitle>
+        <AlertDescription>Failed to load permissions: {error.message}</AlertDescription>
+      </Alert>
+    )
+  }
+
+  return (
+    <div className="container mx-auto p-6">
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-4">
+          <Button variant="outline" size="icon" onClick={() => router.back()}>
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          <div>
+            <h1 className="text-2xl font-bold">Manage Permissions</h1>
+            <p className="text-muted-foreground">
+              For {entityType}: <span className="font-semibold">{entityName}</span>
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            onClick={() => setModifiedPermissions({})}
+            disabled={Object.keys(modifiedPermissions).length === 0}
+          >
+            <X className="mr-2 h-4 w-4" />
+            Cancel
+          </Button>
+          <Button
+            onClick={handleSave}
+            disabled={Object.keys(modifiedPermissions).length === 0 || mutation.isPending}
+          >
+            <Save className="mr-2 h-4 w-4" />
+            {mutation.isPending ? 'Saving...' : 'Save Changes'}
+          </Button>
+        </div>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <div className="flex justify-between items-center">
+            <CardTitle>Permissions</CardTitle>
+            <div className="relative w-1/3">
+              <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search permissions..."
+                className="pl-8"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <TabsList>
+              {filteredGroups?.map((group) => (
+                <TabsTrigger key={group.name} value={group.name!}>
+                  {group.displayName}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+            {filteredGroups?.map((group) => (
+              <TabsContent key={group.name} value={group.name!} className="mt-4">
+                <div className="space-y-4">
+                  {group.permissions?.map((permission) => {
+                    const originalGranted = permission.isGranted
+                    const modifiedGranted = modifiedPermissions[permission.name!]
+                    const isGranted =
+                      modifiedGranted !== undefined ? modifiedGranted : originalGranted
+
+                    return (
+                      <div key={permission.name} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={permission.name}
+                          checked={isGranted}
+                          onCheckedChange={(checked) =>
+                            handlePermissionChange(permission.name!, !!checked)
+                          }
+                        />
+                        <Label htmlFor={permission.name} className="font-normal">
+                          {permission.displayName}
+                        </Label>
+                      </div>
+                    )
+                  })}
+                </div>
+              </TabsContent>
+            ))}
+          </Tabs>
+        </CardContent>
+      </Card>
+    </div>
+  )
+}

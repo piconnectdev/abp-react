@@ -6,7 +6,7 @@ import React from 'react'
  * This constant holds most of the environment variables in a single place.
  * It was created for convenience. If you don't like it, you can remove it and update the codebase everywhere it is used.
  */
-export const clientConfig = {
+export const authClientConfig = {
   url: process.env.NEXT_PUBLIC_API_URL,
   audience: process.env.NEXT_PUBLIC_API_URL,
   client_id: process.env.NEXT_PUBLIC_CLIENT_ID,
@@ -47,7 +47,11 @@ export const AdminMenus: Array<{
   name: string
   link: string
   icon: React.ComponentType<{ className?: string }>
-  submenus?: Array<{ name: string; link: string; icon: React.ComponentType<{ className?: string }> }>
+  submenus?: Array<{
+    name: string
+    link: string
+    icon: React.ComponentType<{ className?: string }>
+  }>
 }> = [
   {
     name: 'Home',
@@ -97,4 +101,3 @@ export const AdminMenus: Array<{
     icon: Cog,
   },
 ]
-

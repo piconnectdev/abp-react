@@ -1,7 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: 'standalone',
+  output: 'export',
   images: {
+    unoptimized: true,
     remotePatterns: [
       {
         protocol: 'https',
@@ -11,6 +12,14 @@ const nextConfig = {
       },
     ],
   },
+  // rewrites: async () => {
+  //   return [
+  //     {
+  //       source: '/api/:path*',
+  //       destination: 'https://abp.antosubash.com/api/:path*',
+  //     },
+  //   ]
+  // },
 }
 
 export default nextConfig
