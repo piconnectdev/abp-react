@@ -14,7 +14,6 @@ import { useMemo, useState } from 'react'
 import { PermissionActions } from '../permission/PermissionActions'
 import { DeleteUser } from './DeleteUser'
 import { UserEdit } from './UserEdit'
-import { UserPermission } from './UserPermission'
 
 type UserActionDialogState = {
   userId: string
@@ -53,8 +52,9 @@ export const UserList = () => {
             userDto: user as IdentityUserUpdateDto,
             dialogType: 'edit',
           }),
-                 onPermission: (user) =>
-           window.location.href = `/admin/permissions/user/${user.userName}`,
+        onPermission: (user) =>
+          //window.location.href = `/admin/permissions/user/${user.userName}`,
+          (window.location.href = `/admin/permissions?type=user&id=${user.id}`),
         onDelete: (user) =>
           setUserActionDialog({
             userId: user.id!,

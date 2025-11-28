@@ -1,36 +1,18 @@
 // /src/lib/api-client.ts
-import { client } from '@/client'
-import { authClientConfig } from '@/config'
+// Chúng ta không cần các factory function nữa vì client được cấu hình tại điểm khởi tạo.
+// File này có thể được giữ lại cho các helper function khác hoặc xóa đi nếu không còn gì.
+
+import { User } from 'oidc-client-ts'
 import { getUserManager } from './oidc-client'
 
 /**
- * Cấu hình client API mặc định để sử dụng baseUrl và interceptor.
- * Hàm này phải được gọi một lần duy nhất ở phía client, tại điểm vào của ứng dụng.
+ * Helper để lấy thông tin user từ oidc-client-ts.
+ * Chỉ hoạt động ở phía client.
+ * @returns Promise chứa thông tin user hoặc null.
  */
-export function configureApiClient() {
-  // Chỉ chạy ở phía client
-  if (typeof window === 'undefined') {
-    return
-  }
-
-  // Ghi đè lại baseUrl của client mặc định
-  client.setConfig({
-    baseUrl: authClientConfig.url,
-  })
-
-  // Gắn interceptor để tự động thêm token và tenantId
-  client.interceptors.request.use(async (request) => {
-    const userManager = getUserManager()
-    const user = await userManager.getUser?.()
-
-    if (user && user.access_token) {
-      request.headers.set('Authorization', `Bearer ${user.access_token}`)
-    }
-    const tenantId = localStorage.getItem('tenantId')
-    if (tenantId) {
-      request.headers.set('__tenant', tenantId)
-    }
-
-    return request
-  })
+async function getCurrentUser(): Promise<User | null> {
+  // Hàm này chỉ nên được gọi ở client-side, nơi `window` object tồn tại.
+  const userManager = getUserManager()
+  // getUser() sẽ trả về user từ storage (sessionStorage/localStorage) nếu có.
+  return await userManager.getUser()
 }

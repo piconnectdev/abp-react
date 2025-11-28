@@ -1,5 +1,5 @@
-import { useRouter } from 'next/navigation'
 import { IdentityRoleUpdateDto } from '@/client'
+import { useRouter } from 'next/navigation'
 
 type RolePermissionProps = {
   roleDto: IdentityRoleUpdateDto
@@ -8,12 +8,13 @@ type RolePermissionProps = {
 
 export const RolePermission = ({ roleDto, onDismiss }: RolePermissionProps) => {
   const router = useRouter()
-  
+
   const handleOpenPermissions = () => {
-    router.push(`/admin/permissions/role/${roleDto.name}`)
+    //router.push(`/admin/permissions/role/${roleDto.name}`)
+    router.push(`/admin/permissions?type=role&id=${roleDto.name}`)
     onDismiss()
   }
-  
+
   return (
     <button
       onClick={handleOpenPermissions}

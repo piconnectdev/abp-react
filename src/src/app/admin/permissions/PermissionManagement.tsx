@@ -1,25 +1,18 @@
 'use client'
 
-import {
-  GetPermissionListResultDto,
-  permissionsGet,
-  permissionsUpdate,
-  UpdatePermissionsDto,
-  userGet,
-} from '@/client'
+import { permissionsGet, permissionsUpdate, UpdatePermissionsDto, userGet } from '@/client'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useToast } from '@/components/ui/use-toast'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { AlertTriangle, ArrowLeft, Save, Search, X } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { PermissionGroup } from './PermissionGroup'
 
 interface PermissionManagementProps {
   entityType: 'role' | 'user'
@@ -43,7 +36,12 @@ export default function PermissionManagement({ entityType, entityId }: Permissio
   // Fetch user data to display name (if entityType is user)
   const { data: userData, isLoading: isUserLoading } = useQuery({
     queryKey: ['user', entityId],
-    queryFn: () => userGet({ id: entityId }),
+    queryFn: async () => {
+      const response = await userGet({
+        path: { id: entityId }, // Đặt id vào trong đối tượng 'path'
+      })
+      return response.data // Chỉ trả về đối tượng UserDto
+    },
     enabled: entityType === 'user',
   })
 
@@ -52,29 +50,27 @@ export default function PermissionManagement({ entityType, entityId }: Permissio
     data: permissionData,
     isLoading: isPermissionsLoading,
     error,
-  } = useQuery<GetPermissionListResultDto>({
+  } = useQuery({
     queryKey: ['permissions', providerName, entityId],
     queryFn: async () => {
-      const response = await permissionsGet({ providerName, providerKey: entityId })
+      const response = await permissionsGet({
+        query: { providerName, providerKey: entityId },
+      })
       return response.data
     },
+    // Giữ dữ liệu cũ trong khi fetch dữ liệu mới để UI không bị giật
+    placeholderData: (previousData) => previousData,
   })
 
-  // Set the active tab to the first permission group once data is loaded
-  useEffect(() => {
-    if (permissionData?.groups && permissionData.groups.length > 0 && !activeTab) {
-      setActiveTab(permissionData.groups[0].name!)
-    }
-  }, [permissionData, activeTab])
-
-  const handlePermissionChange = (permissionName: string, isGranted: boolean) => {
+  const handlePermissionChange = useCallback((permissionName: string, isGranted: boolean) => {
     setModifiedPermissions((prev) => ({
       ...prev,
       [permissionName]: isGranted,
     }))
-  }
+  }, [])
 
   const mutation = useMutation({
+    // Xác định kiểu dữ liệu cho mutation function để có gợi ý code tốt hơn
     mutationFn: (newPermissions: UpdatePermissionsDto) =>
       permissionsUpdate({ providerName, providerKey: entityId, body: newPermissions }),
     onSuccess: () => {
@@ -83,8 +79,9 @@ export default function PermissionManagement({ entityType, entityId }: Permissio
         description: 'Permissions have been updated successfully.',
         variant: 'default',
       })
+      // Reset trạng thái đã thay đổi sau khi lưu thành công
       setModifiedPermissions({})
-      queryClient.invalidateQueries({ queryKey: ['permissions', providerName, entityId] })
+      queryClient.invalidateQueries({ queryKey: ['permissions', providerName, entityId] }) // Làm mới lại dữ liệu quyền
     },
     onError: (err: any) => {
       toast({
@@ -103,14 +100,42 @@ export default function PermissionManagement({ entityType, entityId }: Permissio
     mutation.mutate({ permissions: permissionsToUpdate })
   }
 
-  const filteredGroups = permissionData?.groups?.map((group) => ({
-    ...group,
-    permissions: group.permissions?.filter((p) =>
-      p.displayName?.toLowerCase().includes(searchTerm.toLowerCase())
-    ),
-  }))
+  // Tính toán các quyền và nhóm một cách tối ưu
+  const filteredGroups = useMemo(() => {
+    if (!permissionData?.groups) {
+      return []
+    }
 
-  const entityName = entityType === 'user' ? userData?.data.name || entityId : `Role: ${entityId}`
+    // Nếu không có từ khóa tìm kiếm, chỉ cần lọc ra các nhóm có quyền
+    if (!searchTerm) {
+      return permissionData.groups.filter((g) => g.permissions && g.permissions.length > 0)
+    }
+
+    // Nếu có tìm kiếm, lọc các quyền bên trong mỗi nhóm
+    if (searchTerm) {
+      return permissionData.groups
+        .map((group) => ({
+          ...group,
+          permissions: group.permissions?.filter((p) =>
+            p.displayName?.toLowerCase().includes(searchTerm.toLowerCase())
+          ),
+        }))
+        .filter((group) => group.permissions && group.permissions.length > 0) // Chỉ giữ lại các group có quyền khớp với tìm kiếm
+    }
+
+    return permissionData.groups
+  }, [permissionData, searchTerm])
+
+  // Đảm bảo activeTab luôn hợp lệ, ngay cả khi kết quả tìm kiếm thay đổi
+  useEffect(() => {
+    const firstValidGroupName = filteredGroups[0]?.name
+    // Nếu không có activeTab hoặc activeTab hiện tại không còn trong danh sách đã lọc
+    if (firstValidGroupName && (!activeTab || !filteredGroups.some((g) => g.name === activeTab))) {
+      setActiveTab(firstValidGroupName)
+    }
+  }, [filteredGroups, activeTab])
+
+  const entityName = entityType === 'user' ? userData?.name || entityId : `Role: ${entityId}`
 
   if (isPermissionsLoading || isUserLoading) {
     return (
@@ -193,30 +218,12 @@ export default function PermissionManagement({ entityType, entityId }: Permissio
               ))}
             </TabsList>
             {filteredGroups?.map((group) => (
-              <TabsContent key={group.name} value={group.name!} className="mt-4">
-                <div className="space-y-4">
-                  {group.permissions?.map((permission) => {
-                    const originalGranted = permission.isGranted
-                    const modifiedGranted = modifiedPermissions[permission.name!]
-                    const isGranted =
-                      modifiedGranted !== undefined ? modifiedGranted : originalGranted
-
-                    return (
-                      <div key={permission.name} className="flex items-center space-x-2">
-                        <Checkbox
-                          id={permission.name}
-                          checked={isGranted}
-                          onCheckedChange={(checked) =>
-                            handlePermissionChange(permission.name!, !!checked)
-                          }
-                        />
-                        <Label htmlFor={permission.name} className="font-normal">
-                          {permission.displayName}
-                        </Label>
-                      </div>
-                    )
-                  })}
-                </div>
+              <TabsContent key={group.name} value={group.name!} className="mt-4" forceMount>
+                <PermissionGroup
+                  permissions={group.permissions ?? []}
+                  modifiedPermissions={modifiedPermissions}
+                  onPermissionChange={handlePermissionChange}
+                />
               </TabsContent>
             ))}
           </Tabs>
