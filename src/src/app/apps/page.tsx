@@ -1,6 +1,5 @@
 'use client'
 
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -13,7 +12,6 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { useCompany } from '@/lib/hooks/apps/useCompany'
-import { AlertTriangle } from 'lucide-react'
 import { useState } from 'react'
 
 // Giả định cấu trúc dữ liệu của một công ty để có type-safety
@@ -45,17 +43,17 @@ export default function CompanyPage() {
     )
   }
 
-  if (error) {
-    return (
-      <div className="container mx-auto p-6">
-        <Alert variant="destructive">
-          <AlertTriangle className="h-4 w-4" />
-          <AlertTitle>Error</AlertTitle>
-          <AlertDescription>Failed to load companies: {error.message}</AlertDescription>
-        </Alert>
-      </div>
-    )
-  }
+  // if (error) {
+  //   return (
+  //     <div className="container mx-auto p-6">
+  //       <Alert variant="destructive">
+  //         <AlertTriangle className="h-4 w-4" />
+  //         <AlertTitle>Error</AlertTitle>
+  //         <AlertDescription>Failed to load companies: {error.message}</AlertDescription>
+  //       </Alert>
+  //     </div>
+  //   )
+  // }
 
   return (
     <div className="container mx-auto p-6">
