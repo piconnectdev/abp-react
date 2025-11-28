@@ -20,9 +20,11 @@ export const useApps = (
     queryKey: [QueryNames.GetApps, pageIndex, pageSize, filter],
     queryFn: async () => {
       const { data } = await appsControllerFindAll({
-        skip: pageIndex * pageSize,
-        take: pageSize,
-        filter,
+        query: {
+          SkipCount: pageIndex * pageSize,
+          MaxResultCount: pageSize,
+          Filter: filter,
+        },
       })
       return data
     },

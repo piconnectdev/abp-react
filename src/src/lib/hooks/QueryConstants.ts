@@ -80,4 +80,5 @@ export const QueryNames = {
    * Query to get a user by username.
    */
   GetUserByUsername: 'GetUserByUsername',
+  GetCompanies: 'GetCompanies',
 }
