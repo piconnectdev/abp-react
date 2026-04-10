@@ -34,6 +34,10 @@ export const PublicMenus: Array<{ Name: string; Link: string }> = [
     Name: 'Getting Started',
     Link: '#getting-started',
   },
+  {
+    Name: 'App Started',
+    Link: '/apps',
+  },
 ]
 
 /**
