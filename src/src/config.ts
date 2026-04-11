@@ -1,4 +1,4 @@
-import { Cog, Database, FileText, Home, Menu, MessageSquare, UserRound, Users } from 'lucide-react'
+import { Cog, Database, FileText, Home, Menu, MessageSquare, Network, UserRound, Users } from 'lucide-react'
 import React from 'react'
 
 /**
@@ -95,9 +95,26 @@ export const AdminMenus: Array<{
     ],
   },
   {
+    name: 'Organization Units',
+    link: '/admin/organization-units',
+    icon: Network,
+  },
+  {
     name: 'Tenants',
     link: '/admin/tenants',
     icon: Database,
+    submenus: [
+      {
+        name: 'Tenant List',
+        link: '/admin/tenants',
+        icon: Database,
+      },
+      {
+        name: 'Members',
+        link: '/admin/tenants/members',
+        icon: Users,
+      },
+    ],
   },
   {
     name: 'Settings',
