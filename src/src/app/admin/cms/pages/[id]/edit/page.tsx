@@ -5,7 +5,7 @@ import { htmlToPuckData, isPuckData } from '@/components/puck/utils'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import Error from '@/components/ui/Error'
+import { InlineError } from '@/components/ui/InlineError'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
@@ -303,7 +303,7 @@ export default function EditPage() {
   }
   if (isError) {
     console.error('Page loading error:', error)
-    return <Error />
+    return <InlineError error={error} onRetry={refetch} />
   }
 
   if (!page && !isLoading) {

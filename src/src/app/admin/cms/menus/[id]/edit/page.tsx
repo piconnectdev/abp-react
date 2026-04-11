@@ -3,7 +3,7 @@ import { menuItemAdminUpdate, MenuItemUpdateInput, MenuItemWithDetailsDto } from
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import Error from '@/components/ui/Error'
+import { InlineError } from '@/components/ui/InlineError'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import Loader from '@/components/ui/Loader'
@@ -57,7 +57,7 @@ export default function EditMenuItem() {
     },
   })
 
-  const { data: menuItem, isLoading, isError } = useMenuItem(menuItemId)
+  const { data: menuItem, isLoading, isError, error, refetch } = useMenuItem(menuItemId)
 
   // Load menu item data into form
   useEffect(() => {
@@ -143,7 +143,7 @@ export default function EditMenuItem() {
   }
 
   if (isLoading) return <Loader />
-  if (isError) return <Error />
+  if (isError) return <InlineError error={error} onRetry={refetch} />
 
   if (!menuItem) {
     return (
