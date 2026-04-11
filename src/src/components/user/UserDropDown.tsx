@@ -9,12 +9,12 @@ import {
 import { useCurrentUser } from '@/lib/hooks/useCurrentUser'
 import { USER_ROLE } from '@/lib/utils'
 import Link from 'next/link'
-import { useRouter } from 'next/router'
+import { usePathname } from 'next/navigation'
 import { useMemo } from 'react'
 import { v4 } from 'uuid'
 
 export const UserDropDown = () => {
-  const router = useRouter()
+  const pathname = usePathname()
   const currentUser = useCurrentUser()
   const hasAdmin = currentUser?.roles?.includes(USER_ROLE.ADMIN)
 
@@ -56,7 +56,7 @@ export const UserDropDown = () => {
           {menus.map((m) => (
             <DropdownMenuItem key={v4()}>
               <Link href={m.link} passHref={true} className="block w-full">
-                <Button variant={router.asPath === m.link ? 'default' : 'secondary'}>
+                <Button variant={pathname === m.link ? 'default' : 'secondary'}>
                   {m.name}
                 </Button>
               </Link>

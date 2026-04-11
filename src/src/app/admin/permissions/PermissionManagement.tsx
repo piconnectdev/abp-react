@@ -72,7 +72,7 @@ export default function PermissionManagement({ entityType, entityId }: Permissio
   const mutation = useMutation({
     // Xác định kiểu dữ liệu cho mutation function để có gợi ý code tốt hơn
     mutationFn: (newPermissions: UpdatePermissionsDto) =>
-      permissionsUpdate({ providerName, providerKey: entityId, body: newPermissions }),
+      permissionsUpdate({ query: { providerName, providerKey: entityId }, body: newPermissions }),
     onSuccess: () => {
       toast({
         title: 'Success',
@@ -218,7 +218,7 @@ export default function PermissionManagement({ entityType, entityId }: Permissio
               ))}
             </TabsList>
             {filteredGroups?.map((group) => (
-              <TabsContent key={group.name} value={group.name!} className="mt-4" forceMount>
+              <TabsContent key={group.name} value={group.name!} className="mt-4">
                 <PermissionGroup
                   permissions={group.permissions ?? []}
                   modifiedPermissions={modifiedPermissions}
