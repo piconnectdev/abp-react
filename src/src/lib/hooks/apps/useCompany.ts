@@ -28,9 +28,9 @@ export const useCompany = (
       })
       // API trả về một đối tượng, chúng ta cần trả về mảng `records` bên trong nó.
       // Dữ liệu thực tế nằm trong thuộc tính `records` của đối tượng `data`.
-      if (data && Array.isArray(data.records)) {
-        return data.records
-      }
+      //if (data && Array.isArray(data.records)) {
+      //  return data.records
+      //}
 
       return [] // Trả về mảng rỗng nếu không có dữ liệu hoặc cấu trúc không đúng
     },

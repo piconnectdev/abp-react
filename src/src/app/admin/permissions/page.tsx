@@ -1,11 +1,12 @@
 'use client'
 
 import { useSearchParams } from 'next/navigation'
+import { Suspense } from 'react'
 import PermissionManagement from './PermissionManagement'
 
 type PermissionType = 'role' | 'user'
 
-export default function PermissionsRootPage() {
+function PermissionsContent() {
   const sp = useSearchParams()
   const rawType = sp.get('type') ?? undefined
   const id = sp.get('id') ?? undefined
@@ -23,4 +24,12 @@ export default function PermissionsRootPage() {
   }
 
   return <PermissionManagement entityType={type} entityId={id} />
+}
+
+export default function PermissionsRootPage() {
+  return (
+    <Suspense fallback={<div className="p-4">Loading...</div>}>
+      <PermissionsContent />
+    </Suspense>
+  )
 }

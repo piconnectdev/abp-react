@@ -29,7 +29,7 @@ export const MenuList = () => {
   }
 
   const handleEdit = (menuItem: MenuItemDto) => {
-    window.location.href = `/admin/cms/menus/${menuItem.id}/edit`
+    window.location.href = `/admin/cms/menus/edit?id=${menuItem.id}`
   }
 
   const handleDelete = (menuItem: MenuItemDto) => {

@@ -16,7 +16,7 @@ import { usePage } from '@/lib/hooks/usePages'
 import { Permissions } from '@/lib/utils'
 import { useQueryClient } from '@tanstack/react-query'
 import { ArrowLeft, Clock, RefreshCw, Save, Eye } from 'lucide-react'
-import { useParams, useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useCallback, useEffect, useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 
@@ -31,13 +31,13 @@ const generateSlug = (title: string): string => {
     .replace(/^-|-$/g, '')
 }
 
-export default function EditPage() {
+export default function EditPageClient() {
   const { can } = useGrantedPolicies()
   const { toast } = useToast()
   const queryClient = useQueryClient()
   const router = useRouter()
-  const params = useParams()
-  const pageId = params.id as string
+  const searchParams = useSearchParams()
+  const pageId = searchParams.get('id') ?? ''
 
   // Force re-render when pageId changes
   const key = `edit-page-${pageId}`
@@ -237,9 +237,6 @@ export default function EditPage() {
       queryClient.invalidateQueries({ queryKey: [QueryNames.GetPage, pageId] })
       queryClient.invalidateQueries({ queryKey: [QueryNames.GetPages] })
       localStorage.removeItem(`page-draft-${pageId}`) // Clear draft after successful save
-      
-      // Remove the redirect - stay on the current page
-      // router.push('/admin/cms')
     } catch (err: unknown) {
       console.error('Page update error:', err)
 
@@ -372,7 +369,6 @@ export default function EditPage() {
               </Badge>
             )}
 
-
             <Button
               size="sm"
               variant="outline"
@@ -392,7 +388,7 @@ export default function EditPage() {
                 onClick={() => {
                   const slug = (page as VoloCmsKitAdminPagesPageDto).slug
                   if (slug) {
-                    window.open(`/pages/${slug}`, '_blank')
+                    window.open(`/pages?slug=${slug}`, '_blank')
                   }
                 }}
                 disabled={!page || !(page as VoloCmsKitAdminPagesPageDto).slug}
@@ -532,10 +528,9 @@ export default function EditPage() {
             const contentKey = field.value ? JSON.stringify(field.value).slice(0, 50) : 'empty'
             return (
               <PuckEditor
-                key={`puck-editor-${contentKey}`} // Force re-render when content changes
+                key={`puck-editor-${contentKey}`}
                 data={puckData}
                 onChange={(newData) => {
-                  // Store as JSON string in the form
                   const dataToStore =
                     typeof newData === 'string' ? newData : JSON.stringify(newData)
                   field.onChange(dataToStore)

@@ -21,17 +21,17 @@ import { useGrantedPolicies } from '@/lib/hooks/useGrantedPolicies'
 import { useMenuItem } from '@/lib/hooks/useMenuItems'
 import { useQueryClient } from '@tanstack/react-query'
 import { AlertCircle, ArrowLeft, Save } from 'lucide-react'
-import { useParams, useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 
-export default function EditMenuItem() {
+export default function EditMenuItemClient() {
   const { can } = useGrantedPolicies()
   const { toast } = useToast()
   const queryClient = useQueryClient()
   const router = useRouter()
-  const params = useParams()
-  const menuItemId = params.id as string
+  const searchParams = useSearchParams()
+  const menuItemId = searchParams.get('id') ?? ''
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [formErrors, setFormErrors] = useState<Record<string, string[]>>({})
 

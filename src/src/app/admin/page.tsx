@@ -31,6 +31,7 @@ export default function AdminIndex() {
     queryKey: ['AbpApplicationConfiguration'],
     queryFn: async () => {
       const response = await abpApplicationConfigurationGet()
+      if (!response.data) throw new Error('No data')
       return response.data
     },
   })

@@ -2,7 +2,7 @@
 
 import { useAuth } from '@/context/AuthContext'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
-import { ComponentType, useEffect } from 'react'
+import { ComponentType, Suspense, useEffect } from 'react'
 
 interface ProtectedRouteOptions {
   checkTenant?: boolean
@@ -46,6 +46,11 @@ export function withProtectedRoute<P extends object>(
 
     return <WrappedComponent {...props} />
   }
-  WithProtectedRoute.displayName = `withProtectedRoute(${WrappedComponent.displayName || WrappedComponent.name || 'Component'})`
-  return WithProtectedRoute
+  const WithProtectedRouteSuspense = (props: P) => (
+    <Suspense fallback={<div>Loading...</div>}>
+      <WithProtectedRoute {...props} />
+    </Suspense>
+  )
+  WithProtectedRouteSuspense.displayName = `withProtectedRoute(${WrappedComponent.displayName || WrappedComponent.name || 'Component'})`
+  return WithProtectedRouteSuspense
 }

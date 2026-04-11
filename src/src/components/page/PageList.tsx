@@ -42,11 +42,11 @@ export const PageList = () => {
       getPageColumns({
         onView: (page) => {
           // Navigate to view page using slug
-          window.location.href = `/pages/${page.slug}`
+          window.location.href = `/pages?slug=${page.slug}`
         },
         onEdit: (page) => {
           // Navigate to edit page
-          window.location.href = `/admin/cms/pages/${page.id}/edit`
+          window.location.href = `/admin/cms/pages/edit?id=${page.id}`
         },
         onDelete: (page) =>
           setDeleteDialog({
