@@ -2,14 +2,24 @@
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { CustomTable } from '@/components/ui/CustomTable'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import { InlineError } from '@/components/ui/InlineError'
 import Loader from '@/components/ui/Loader'
 import { Search } from '@/components/ui/Search'
 import { useToast } from '@/components/ui/use-toast'
 import { TenantMemberDto } from '@/lib/api/admin/tenant-member-api'
-import { useRemoveTenantMember, useTenantMembers, useUpdateTenantMember } from '@/lib/hooks/useTenantMembers'
+import {
+  useRemoveTenantMember,
+  useTenantMembers,
+  useUpdateTenantMember,
+} from '@/lib/hooks/useTenantMembers'
 import { ColumnDef, getCoreRowModel, PaginationState, useReactTable } from '@tanstack/react-table'
-import { Pencil, Power, Trash2, UserPlus } from 'lucide-react'
+import { Cog, PencilIcon, Power, Trash, UserPlus } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { EditMemberDialog } from './EditMemberDialog'
 import { InviteMember } from './InviteMember'
@@ -24,7 +34,11 @@ export const TenantMemberList = () => {
     pageSize: 10,
   })
 
-  const { isLoading, data, isError, error, refetch } = useTenantMembers(pageIndex, pageSize, searchStr)
+  const { isLoading, data, isError, error, refetch } = useTenantMembers(
+    pageIndex,
+    pageSize,
+    searchStr
+  )
   const remove = useRemoveTenantMember()
   const update = useUpdateTenantMember()
 
@@ -33,7 +47,7 @@ export const TenantMemberList = () => {
   const handleRemove = async (member: TenantMemberDto) => {
     if (!confirm(`Xoá ${member.userName} khỏi tenant?`)) return
     try {
-      await remove.mutateAsync(member.userId)
+      await remove.mutateAsync(member.id)
       toast({ title: 'Đã xoá', description: `Đã xoá ${member.userName}` })
     } catch {
       toast({ title: 'Lỗi', description: 'Không thể xoá thành viên', variant: 'destructive' })
@@ -43,7 +57,11 @@ export const TenantMemberList = () => {
   const handleToggleActive = async (member: TenantMemberDto) => {
     const newActive = !member.isActive
     try {
-      await update.mutateAsync({ id: member.userId, roles: member.roles ?? [], isActive: newActive })
+      await update.mutateAsync({
+        id: member.id,
+        roles: member.roles ?? [],
+        isActive: newActive,
+      })
       toast({
         title: newActive ? 'Đã kích hoạt' : 'Đã vô hiệu hoá',
         description: member.userName,
@@ -61,39 +79,52 @@ export const TenantMemberList = () => {
           {
             accessorKey: 'actions',
             header: 'Actions',
-            cell: (info) => (
-              <div className="flex items-center gap-1">
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  className="h-8 w-8"
-                  title="Chỉnh sửa"
-                  onClick={() => setEditMember(info.row.original)}
-                >
-                  <Pencil className="h-4 w-4" />
-                </Button>
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  className={`h-8 w-8 ${info.row.original.isActive ? 'text-green-600 hover:text-green-700' : 'text-muted-foreground hover:text-foreground'}`}
-                  title={info.row.original.isActive ? 'Vô hiệu hoá' : 'Kích hoạt'}
-                  onClick={() => handleToggleActive(info.row.original)}
-                  disabled={update.isPending}
-                >
-                  <Power className="h-4 w-4" />
-                </Button>
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  className="h-8 w-8 text-destructive hover:text-destructive"
-                  title="Xoá"
-                  onClick={() => handleRemove(info.row.original)}
-                  disabled={remove.isPending}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </div>
-            ),
+            cell: (info) => {
+              const member = info.row.original
+              return (
+                <section className="flex items-center space-x-2">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button size="sm" className="flex items-center space-x-1">
+                        <Cog width={16} height={16} />
+                        <span className="hidden sm:inline">Actions</span>
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent>
+                      <DropdownMenuItem asChild>
+                        <Button onClick={() => setEditMember(member)}>
+                          <div className="flex items-center space-x-1">
+                            <PencilIcon width={18} height={18} className="flex-1" />
+                            <span className="hidden sm:inline">Edit</span>
+                          </div>
+                        </Button>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Button
+                          onClick={() => handleToggleActive(member)}
+                          disabled={update.isPending}
+                        >
+                          <div className="flex items-center space-x-1">
+                            <Power width={18} height={18} className="flex-1" />
+                            <span className="hidden sm:inline">
+                              {member.isActive ? 'Deactivate' : 'Activate'}
+                            </span>
+                          </div>
+                        </Button>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Button onClick={() => handleRemove(member)} disabled={remove.isPending}>
+                          <div className="flex items-center space-x-1">
+                            <Trash width={18} height={18} className="flex-1" />
+                            <span className="hidden sm:inline">Delete</span>
+                          </div>
+                        </Button>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </section>
+              )
+            },
           },
           {
             accessorKey: 'userName',

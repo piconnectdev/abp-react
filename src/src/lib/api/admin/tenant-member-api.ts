@@ -20,8 +20,12 @@ export interface TenantMemberDto {
 }
 
 export interface InviteMemberDto {
-  email: string
-  roleNames?: string[]
+  tenantId: string
+  userName: string
+  roles: string[]
+  status?: number
+  inviteStatus?: number
+  description?: string
 }
 
 export const tenantMemberApi = {
@@ -33,9 +37,9 @@ export const tenantMemberApi = {
   }): Promise<{ items: TenantMemberDto[]; totalCount: number }> =>
     adminGet('/api/v1/tenant-members/members', params as Record<string, unknown>),
 
-  // POST /api/v1/tenant-members/members
+  // POST /api/v1/tenant-members/members/invite
   inviteMember: (dto: InviteMemberDto): Promise<TenantMemberDto> =>
-    adminPost('/api/v1/tenant-members/members', dto),
+    adminPost('/api/v1/tenant-members/members/invite', dto),
 
   // DELETE /api/v1/tenant-members/members/{userId}
   removeMember: (userId: string): Promise<void> =>
