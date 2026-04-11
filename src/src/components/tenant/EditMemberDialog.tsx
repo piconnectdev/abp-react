@@ -11,9 +11,9 @@ import {
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 import { useToast } from '@/components/ui/use-toast'
+import { TenantMemberDto } from '@/lib/api/admin/tenant-member-api'
 import { useRoles } from '@/lib/hooks/useRoles'
 import { useUpdateTenantMember } from '@/lib/hooks/useTenantMembers'
-import { TenantMemberDto } from '@/lib/api/admin/tenant-member-api'
 import { useState } from 'react'
 
 type Props = {
@@ -37,7 +37,7 @@ export const EditMemberDialog = ({ member, onDismiss }: Props) => {
 
   const handleSave = async () => {
     try {
-      await update.mutateAsync({ id: member.userId, roles: selectedRoles, isActive })
+      await update.mutateAsync({ id: member.id, roles: selectedRoles, isActive })
       toast({ title: 'Đã cập nhật', description: `Đã cập nhật ${member.userName}` })
       onDismiss()
     } catch {
@@ -82,7 +82,9 @@ export const EditMemberDialog = ({ member, onDismiss }: Props) => {
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={onDismiss}>Huỷ</Button>
+          <Button variant="outline" onClick={onDismiss}>
+            Huỷ
+          </Button>
           <Button onClick={handleSave} disabled={update.isPending}>
             {update.isPending ? 'Đang lưu...' : 'Lưu'}
           </Button>
