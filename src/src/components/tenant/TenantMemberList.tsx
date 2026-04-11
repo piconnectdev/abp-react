@@ -66,11 +66,11 @@ export const TenantMemberList = () => {
             header: 'Email',
           },
           {
-            accessorKey: 'roleNames',
+            accessorKey: 'roles',
             header: 'Roles',
             cell: (info) => (
               <div className="flex gap-1 flex-wrap">
-                {(info.getValue() as string[]).map((r) => (
+                {((info.getValue() as string[]) ?? []).map((r) => (
                   <Badge key={r} variant="secondary" className="text-xs">
                     {r}
                   </Badge>

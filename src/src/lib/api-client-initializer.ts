@@ -6,7 +6,7 @@ import { tokenStorage } from '@/lib/api/token-storage'
 import { getUserManager } from './oidc-client'
 
 // Endpoints that must always use the host token (not tenant-scoped)
-const HOST_ONLY_PATHS = ['/api/identity/my-profile']
+const HOST_ONLY_PATHS = ['/api/identity/my-profile', '/api/multi-tenancy/', '/api/abp/multi-tenancy/']
 
 /**
  * Cấu hình client API mặc định cho Admin Service.

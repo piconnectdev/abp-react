@@ -4,10 +4,19 @@ export interface TenantMemberDto {
   id: string
   userId: string
   userName: string
-  name?: string
   email: string
-  roleNames: string[]
-  joinedAt?: string
+  tenantId?: string
+  tenantName?: string
+  roles: string[]
+  status?: number
+  inviteStatus?: number
+  isActive?: boolean
+  isOwner?: boolean
+  description?: string
+  info?: string
+  joinedDate?: string
+  invitedAt?: string
+  acceptedAt?: string
 }
 
 export interface InviteMemberDto {
