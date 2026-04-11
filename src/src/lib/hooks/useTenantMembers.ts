@@ -1,4 +1,5 @@
 import { tenantMemberApi, InviteMemberDto } from '@/lib/api/admin/tenant-member-api'
+import type { TenantMemberDto } from '@/lib/api/admin/tenant-member-api'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { QueryNames } from './QueryConstants'
 
@@ -44,3 +45,16 @@ export const useUpdateTenantMemberRoles = () => {
     },
   })
 }
+
+export const useUpdateTenantMember = () => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, roles, isActive }: { id: string; roles: string[]; isActive: boolean }) =>
+      tenantMemberApi.updateMember(id, { roles, isActive }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [QueryNames.GetTenantMembers] })
+    },
+  })
+}
+
+export type { TenantMemberDto }

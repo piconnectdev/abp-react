@@ -44,4 +44,8 @@ export const tenantMemberApi = {
   // PUT /api/v1/tenant-members/members/{userId}/roles
   updateRoles: (userId: string, roleNames: string[]): Promise<void> =>
     adminPut(`/api/v1/tenant-members/members/${userId}/roles`, { roleNames }),
+
+  // PUT /api/v1/tenant-members/members/{id}
+  updateMember: (id: string, dto: { roles: string[]; isActive: boolean }): Promise<TenantMemberDto> =>
+    adminPut(`/api/v1/tenant-members/members/${id}`, dto),
 }
