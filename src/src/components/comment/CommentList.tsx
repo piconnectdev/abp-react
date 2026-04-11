@@ -1,7 +1,7 @@
 'use client'
 import { CommentWithAuthorDto } from '@/client'
 import { CustomTable } from '@/components/ui/CustomTable'
-import Error from '@/components/ui/Error'
+import { InlineError } from '@/components/ui/InlineError'
 import Loader from '@/components/ui/Loader'
 import { Search } from '@/components/ui/Search'
 import { useToast } from '@/components/ui/use-toast'
@@ -33,7 +33,7 @@ export const CommentList = () => {
     pageSize: 10,
   })
 
-  const { isLoading, data, isError, error } = useComments(
+  const { isLoading, data, isError, error, refetch } = useComments(
     pagination.pageIndex,
     pagination.pageSize,
     searchStr || undefined
@@ -74,7 +74,7 @@ export const CommentList = () => {
   })
 
   if (isLoading) return <Loader />
-  if (isError) return <Error />
+  if (isError) return <InlineError error={error} onRetry={refetch} />
 
   return (
     <>

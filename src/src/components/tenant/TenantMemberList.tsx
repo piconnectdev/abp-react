@@ -1,7 +1,7 @@
 'use client'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import Error from '@/components/ui/Error'
+import { InlineError } from '@/components/ui/InlineError'
 import Loader from '@/components/ui/Loader'
 import { Search } from '@/components/ui/Search'
 import { useToast } from '@/components/ui/use-toast'
@@ -22,7 +22,7 @@ export const TenantMemberList = () => {
     pageSize: 10,
   })
 
-  const { isLoading, data, isError } = useTenantMembers(pageIndex, pageSize, searchStr)
+  const { isLoading, data, isError, error, refetch } = useTenantMembers(pageIndex, pageSize, searchStr)
   const remove = useRemoveTenantMember()
 
   const pagination = useMemo(() => ({ pageIndex, pageSize }), [pageIndex, pageSize])
@@ -98,7 +98,7 @@ export const TenantMemberList = () => {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-4">
-        <Search onSearch={setSearchStr} />
+        <Search onUpdate={(v) => setSearchStr(v || undefined)} value={searchStr ?? ''} />
         <Button onClick={() => setShowInvite(true)} className="gap-2 shrink-0">
           <UserPlus className="h-4 w-4" />
           Mời thành viên
@@ -106,8 +106,10 @@ export const TenantMemberList = () => {
       </div>
 
       {isLoading && <Loader />}
-      {isError && <Error />}
-      {!isLoading && !isError && <CustomTable table={table} />}
+      {isError && <InlineError error={error} onRetry={refetch} />}
+      {!isLoading && !isError && (
+        <CustomTable table={table} totalCount={data?.totalCount ?? 0} pageSize={pageSize} />
+      )}
 
       {showInvite && <InviteMember onDismiss={() => setShowInvite(false)} />}
     </div>

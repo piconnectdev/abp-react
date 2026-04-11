@@ -2,13 +2,14 @@
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from '@/components/ui/command'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { useToast } from '@/components/ui/use-toast'
 import { useAuth } from '@/context/AuthContext'
 import { useTenants } from '@/lib/hooks/useTenants'
@@ -17,15 +18,17 @@ import { useState } from 'react'
 
 export const TenantSwitcher = () => {
   const { tenantId, tenantToken, switchTenant, returnToHost } = useAuth()
-  const { data: tenantsData } = useTenants(0, 50)
+  const { data: tenantsData } = useTenants(0, 200)
   const { toast } = useToast()
   const [isSwitching, setIsSwitching] = useState(false)
+  const [open, setOpen] = useState(false)
 
   const currentTenant = tenantsData?.items?.find((t) => t.id === tenantId)
   const isInTenant = !!tenantToken
 
   const handleSwitch = async (id: string, name: string) => {
-    if (id === tenantId) return
+    setOpen(false)
+    if (id === tenantId && isInTenant) return
     setIsSwitching(true)
     try {
       await switchTenant(id)
@@ -38,13 +41,14 @@ export const TenantSwitcher = () => {
   }
 
   const handleReturnToHost = () => {
+    setOpen(false)
     returnToHost()
     toast({ title: 'Đã quay về Host', description: 'Đang dùng token Host' })
   }
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
         <Button variant="outline" size="sm" className="gap-2 h-8" disabled={isSwitching}>
           <Building2 className="h-3.5 w-3.5" />
           <span className="max-w-[120px] truncate text-xs">
@@ -55,52 +59,48 @@ export const TenantSwitcher = () => {
           )}
           <ChevronDown className="h-3 w-3 opacity-60" />
         </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-56">
-        <DropdownMenuLabel className="text-xs text-muted-foreground">
-          Chuyển tenant
-        </DropdownMenuLabel>
-        <DropdownMenuSeparator />
-
-        {/* Host option */}
-        <DropdownMenuItem
-          onClick={handleReturnToHost}
-          className={!isInTenant ? 'bg-primary/5 font-medium' : ''}
-        >
-          <Building2 className="h-4 w-4 mr-2 opacity-60" />
-          Host
-          {!isInTenant && <Badge variant="secondary" className="ml-auto text-xs">Hiện tại</Badge>}
-        </DropdownMenuItem>
-
-        {tenantsData?.items && tenantsData.items.length > 0 && (
-          <>
-            <DropdownMenuSeparator />
-            {tenantsData.items.map((tenant) => (
-              <DropdownMenuItem
-                key={tenant.id}
-                onClick={() => handleSwitch(tenant.id!, tenant.name!)}
-                className={tenant.id === tenantId && isInTenant ? 'bg-primary/5 font-medium' : ''}
+      </PopoverTrigger>
+      <PopoverContent className="w-64 p-0" align="end">
+        <Command>
+          <CommandInput placeholder="Tìm tenant..." />
+          <CommandList>
+            <CommandEmpty>Không tìm thấy tenant.</CommandEmpty>
+            <CommandGroup heading="Chuyển tenant">
+              <CommandItem
+                onSelect={handleReturnToHost}
+                className={!isInTenant ? 'font-medium' : ''}
               >
                 <Building2 className="h-4 w-4 mr-2 opacity-60" />
-                <span className="truncate">{tenant.name}</span>
-                {tenant.id === tenantId && isInTenant && (
+                Host
+                {!isInTenant && (
                   <Badge variant="secondary" className="ml-auto text-xs">Hiện tại</Badge>
                 )}
-              </DropdownMenuItem>
-            ))}
-          </>
-        )}
-
-        {isInTenant && (
-          <>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={handleReturnToHost} className="text-muted-foreground">
-              <LogOut className="h-4 w-4 mr-2" />
-              Quay về Host
-            </DropdownMenuItem>
-          </>
-        )}
-      </DropdownMenuContent>
-    </DropdownMenu>
+              </CommandItem>
+              {tenantsData?.items?.map((tenant) => (
+                <CommandItem
+                  key={tenant.id}
+                  onSelect={() => handleSwitch(tenant.id!, tenant.name!)}
+                  className={tenant.id === tenantId && isInTenant ? 'font-medium' : ''}
+                >
+                  <Building2 className="h-4 w-4 mr-2 opacity-60" />
+                  <span className="truncate">{tenant.name}</span>
+                  {tenant.id === tenantId && isInTenant && (
+                    <Badge variant="secondary" className="ml-auto text-xs">Hiện tại</Badge>
+                  )}
+                </CommandItem>
+              ))}
+            </CommandGroup>
+            {isInTenant && (
+              <CommandGroup>
+                <CommandItem onSelect={handleReturnToHost} className="text-muted-foreground">
+                  <LogOut className="h-4 w-4 mr-2" />
+                  Quay về Host
+                </CommandItem>
+              </CommandGroup>
+            )}
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
   )
 }

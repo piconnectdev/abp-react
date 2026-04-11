@@ -1,4 +1,5 @@
 import { authClientConfig } from '@/config'
+import { parseApiError } from '@/lib/api/parse-api-error'
 import { tokenStorage } from '@/lib/api/token-storage'
 import { getUserManager } from '@/lib/oidc-client'
 
@@ -41,7 +42,7 @@ export async function adminGet<T>(
   const res = await fetch(buildUrl(path, params), {
     headers: await getAdminHeaders(tenantId),
   })
-  if (!res.ok) throw new Error(await res.text())
+  if (!res.ok) throw await parseApiError(res)
   return res.json()
 }
 
@@ -55,7 +56,7 @@ export async function adminPost<T>(
     headers: await getAdminHeaders(tenantId),
     body: JSON.stringify(body),
   })
-  if (!res.ok) throw new Error(await res.text())
+  if (!res.ok) throw await parseApiError(res)
   return res.json()
 }
 
@@ -69,7 +70,7 @@ export async function adminPut<T>(
     headers: await getAdminHeaders(tenantId),
     body: JSON.stringify(body),
   })
-  if (!res.ok) throw new Error(await res.text())
+  if (!res.ok) throw await parseApiError(res)
   return res.json()
 }
 
@@ -78,7 +79,7 @@ export async function adminDelete(path: string, tenantId?: string): Promise<void
     method: 'DELETE',
     headers: await getAdminHeaders(tenantId),
   })
-  if (!res.ok) throw new Error(await res.text())
+  if (!res.ok) throw await parseApiError(res)
 }
 
 export async function adminGetAsHost<T>(
@@ -88,6 +89,6 @@ export async function adminGetAsHost<T>(
   const res = await fetch(buildUrl(path, params), {
     headers: await getHostHeaders(),
   })
-  if (!res.ok) throw new Error(await res.text())
+  if (!res.ok) throw await parseApiError(res)
   return res.json()
 }

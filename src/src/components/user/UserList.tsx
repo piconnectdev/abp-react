@@ -1,7 +1,7 @@
 'use client'
 import { IdentityUserDto, IdentityUserUpdateDto } from '@/client'
 import { CustomTable } from '@/components/ui/CustomTable'
-import Error from '@/components/ui/Error'
+import { InlineError } from '@/components/ui/InlineError'
 import Loader from '@/components/ui/Loader'
 import { Search } from '@/components/ui/Search'
 import { useToast } from '@/components/ui/use-toast'
@@ -32,7 +32,7 @@ export const UserList = () => {
     pageSize: 10,
   })
 
-  const { isLoading, data, isError, error } = useUsers(
+  const { isLoading, data, isError, error, refetch } = useUsers(
     pagination.pageIndex,
     pagination.pageSize,
     searchStr || undefined
@@ -76,7 +76,7 @@ export const UserList = () => {
   })
 
   if (isLoading) return <Loader />
-  if (isError) return <Error />
+  if (isError) return <InlineError error={error} onRetry={refetch} />
 
   return (
     <>

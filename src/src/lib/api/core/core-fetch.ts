@@ -1,3 +1,4 @@
+import { parseApiError } from '@/lib/api/parse-api-error'
 import { tokenStorage } from '@/lib/api/token-storage'
 import { getUserManager } from '@/lib/oidc-client'
 
@@ -24,7 +25,7 @@ function buildUrl(path: string, params?: Record<string, unknown>): string {
 
 export async function coreGet<T>(path: string, params?: Record<string, unknown>): Promise<T> {
   const res = await fetch(buildUrl(path, params), { headers: await getCoreHeaders() })
-  if (!res.ok) throw new Error(await res.text())
+  if (!res.ok) throw await parseApiError(res)
   return res.json()
 }
 
@@ -34,7 +35,7 @@ export async function corePost<T>(path: string, body: unknown): Promise<T> {
     headers: await getCoreHeaders(),
     body: JSON.stringify(body),
   })
-  if (!res.ok) throw new Error(await res.text())
+  if (!res.ok) throw await parseApiError(res)
   return res.json()
 }
 
@@ -44,7 +45,7 @@ export async function corePut<T>(path: string, body: unknown): Promise<T> {
     headers: await getCoreHeaders(),
     body: JSON.stringify(body),
   })
-  if (!res.ok) throw new Error(await res.text())
+  if (!res.ok) throw await parseApiError(res)
   return res.json()
 }
 
@@ -53,5 +54,5 @@ export async function coreDelete(path: string): Promise<void> {
     method: 'DELETE',
     headers: await getCoreHeaders(),
   })
-  if (!res.ok) throw new Error(await res.text())
+  if (!res.ok) throw await parseApiError(res)
 }

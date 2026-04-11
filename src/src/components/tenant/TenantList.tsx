@@ -1,7 +1,7 @@
 'use client'
 import { TenantDto, TenantUpdateDto } from '@/client'
 import { CustomTable } from '@/components/ui/CustomTable'
-import Error from '@/components/ui/Error'
+import { InlineError } from '@/components/ui/InlineError'
 import Loader from '@/components/ui/Loader'
 import { Search } from '@/components/ui/Search'
 import { useToast } from '@/components/ui/use-toast'
@@ -30,7 +30,7 @@ export const TenantList = () => {
     pageIndex: 0,
     pageSize: 10,
   })
-  const { isLoading, data, isError } = useTenants(pageIndex, pageSize, searchStr)
+  const { isLoading, data, isError, error, refetch } = useTenants(pageIndex, pageSize, searchStr)
   const pagination = useMemo(
     () => ({
       pageIndex,
@@ -134,7 +134,7 @@ export const TenantList = () => {
   })
 
   if (isLoading) return <Loader />
-  if (isError) return <Error />
+  if (isError) return <InlineError error={error} onRetry={refetch} />
 
   return (
     <>

@@ -1,7 +1,7 @@
 'use client'
 import { AddOrganizationUnit } from '@/components/organization-unit/AddOrganizationUnit'
 import { OrganizationUnitTree } from '@/components/organization-unit/OrganizationUnitTree'
-import Error from '@/components/ui/Error'
+import { InlineError } from '@/components/ui/InlineError'
 import Loader from '@/components/ui/Loader'
 import { Button } from '@/components/ui/button'
 import { useOrganizationUnits } from '@/lib/hooks/useOrganizationUnits'
@@ -9,7 +9,7 @@ import { Network, Plus } from 'lucide-react'
 import { useState } from 'react'
 
 export default function OrganizationUnitsPage() {
-  const { data, isLoading, isError } = useOrganizationUnits()
+  const { data, isLoading, isError, error, refetch } = useOrganizationUnits()
   const [showAdd, setShowAdd] = useState(false)
 
   return (
@@ -33,7 +33,7 @@ export default function OrganizationUnitsPage() {
 
       {/* Content */}
       {isLoading && <Loader />}
-      {isError && <Error />}
+      {isError && <InlineError error={error} onRetry={refetch} />}
 
       {!isLoading && !isError && (
         <div className="rounded-lg border bg-card p-4">

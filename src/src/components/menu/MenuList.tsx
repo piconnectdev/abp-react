@@ -1,6 +1,6 @@
 'use client'
 import { MenuItemDto } from '@/client'
-import Error from '@/components/ui/Error'
+import { InlineError } from '@/components/ui/InlineError'
 import Loader from '@/components/ui/Loader'
 import { Search } from '@/components/ui/Search'
 import { useToast } from '@/components/ui/use-toast'
@@ -21,7 +21,7 @@ export const MenuList = () => {
     displayName: string
   } | null>(null)
 
-  const { isLoading, data, isError } = useMenuItems(0, 1000, searchStr || undefined)
+  const { isLoading, data, isError, error, refetch } = useMenuItems(0, 1000, searchStr || undefined)
 
   const handleDeleteComplete = () => {
     queryClient.invalidateQueries({ queryKey: [QueryNames.GetMenuItems] })
@@ -40,7 +40,7 @@ export const MenuList = () => {
   }
 
   if (isLoading) return <Loader />
-  if (isError) return <Error />
+  if (isError) return <InlineError error={error} onRetry={refetch} />
 
   return (
     <div className="space-y-4">

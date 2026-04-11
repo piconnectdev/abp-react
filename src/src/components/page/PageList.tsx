@@ -2,7 +2,7 @@
 import { VoloCmsKitAdminPagesPageDto } from '@/client'
 import { Button } from '@/components/ui/button'
 import { CustomTable } from '@/components/ui/CustomTable'
-import Error from '@/components/ui/Error'
+import { InlineError } from '@/components/ui/InlineError'
 import Loader from '@/components/ui/Loader'
 import { Search } from '@/components/ui/Search'
 import { useToast } from '@/components/ui/use-toast'
@@ -26,7 +26,7 @@ export const PageList = () => {
     pageSize: 10,
   })
 
-  const { isLoading, data, isError, error } = usePages(
+  const { isLoading, data, isError, error, refetch } = usePages(
     pagination.pageIndex,
     pagination.pageSize,
     searchStr || undefined
@@ -68,7 +68,7 @@ export const PageList = () => {
   })
 
   if (isLoading) return <Loader />
-  if (isError) return <Error />
+  if (isError) return <InlineError error={error} onRetry={refetch} />
 
   return (
     <>
