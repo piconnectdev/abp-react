@@ -23,7 +23,8 @@ export async function switchTenantViaApi(tenantId: string): Promise<{ access_tok
   })
   if (!res.ok) throw await parseApiError(res)
   const data = await res.json()
-  return data.accessToken
+  // Backend trả về accessToken (camelCase), map sang access_token để khớp với performSwitchTenant
+  return { access_token: data.accessToken ?? data.access_token }
 }
 
 /**
