@@ -13,6 +13,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { ColumnDef, PaginationState, getCoreRowModel, useReactTable } from '@tanstack/react-table'
 import { useMemo, useState } from 'react'
 import { PermissionActions } from '../permission/PermissionActions'
+import { AddPage } from './AddPage'
 import { DeletePage } from './DeletePage'
 
 export const PageList = () => {
@@ -72,6 +73,7 @@ export const PageList = () => {
 
   return (
     <>
+      <AddPage />
       {deleteDialog && (
         <DeletePage
           page={{
