@@ -1,5 +1,7 @@
 import { IdentityRoleDto, IdentityUserUpdateDto, userUpdate } from '@/client'
 import { useToast } from '@/components/ui/use-toast'
+import { QueryNames } from '@/lib/hooks/QueryConstants'
+import { useQueryClient } from '@tanstack/react-query'
 import { MouseEvent, useCallback, useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { v4 } from 'uuid'
@@ -38,6 +40,7 @@ type UserEditProps = {
 export const UserEdit = ({ userDto, userId, onDismiss }: UserEditProps) => {
   const [open, setOpen] = useState(false)
   const { toast } = useToast()
+  const queryClient = useQueryClient()
   const { handleSubmit, register } = useForm()
   const [roles, setRoles] = useState<RoleType[]>([])
   const userRole = useUserRoles({ userId })
@@ -50,6 +53,8 @@ export const UserEdit = ({ userDto, userId, onDismiss }: UserEditProps) => {
         path: { id: userId },
         body: { ...userDto, ...user },
       })
+      await queryClient.invalidateQueries({ queryKey: [QueryNames.GetUsers] })
+      await queryClient.invalidateQueries({ queryKey: [QueryNames.GetUserRoles, userId] })
       toast({
         title: 'Success',
         description: 'User Updated Successfully',
@@ -86,20 +91,13 @@ export const UserEdit = ({ userDto, userId, onDismiss }: UserEditProps) => {
     }
   }, [userRole.data?.items])
 
-  const onRoleAssignEvent = useCallback(
-    (role: IdentityRoleDto) => {
-      const hasAssignedRoleExistAlready = roles.findIndex((r) => role.id === r.id)
-
-      if (hasAssignedRoleExistAlready !== -1) {
-        roles.splice(hasAssignedRoleExistAlready, 1)
-        setRoles([...roles])
-      } else {
-        roles.push({ name: role.name!, id: role.id! })
-        setRoles([...roles])
-      }
-    },
-    [roles]
-  )
+  const onRoleAssignEvent = useCallback((role: IdentityRoleDto) => {
+    setRoles((prev) => {
+      const exists = prev.find((r) => r.id === role.id)
+      if (exists) return prev.filter((r) => r.id !== role.id)
+      return [...prev, { name: role.name!, id: role.id! }]
+    })
+  }, [])
 
   const onRoleAssignedSaveEvent = async (e: MouseEvent) => {
     e.preventDefault()
@@ -168,13 +166,13 @@ export const UserEdit = ({ userDto, userId, onDismiss }: UserEditProps) => {
             </form>
           </TabsContent>
           <TabsContent value={TABS_NAME.USERS_ROLE_ASSIGN}>
-            {assignableRoles?.isLoading && <Loader />}
+            {(assignableRoles?.isLoading || userRole?.isLoading) && <Loader />}
             {assignableRoles?.isError && (
               <div className="bg-error p-10 text-3xl">
                 There was an error while featching roles information for the {userDto.userName}
               </div>
             )}
-            {!assignableRoles.isLoading && !assignableRoles.isError && (
+            {!assignableRoles.isLoading && !assignableRoles.isError && !userRole.isLoading && (
               <>
                 {assignableRoles?.data?.items?.map((r) => (
                   <div key={v4()} className={classNames('flex items-center space-x-2 pb-5')}>

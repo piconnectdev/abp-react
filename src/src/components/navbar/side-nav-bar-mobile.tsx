@@ -15,6 +15,7 @@ import { usePathname } from 'next/navigation'
 import { useState } from 'react'
 import ClientLink from '../ui/client-link'
 import useSession from '@/useSession'
+import { TenantSwitcher } from '@/components/tenant/TenantSwitcher'
 
 export default function SideNavBarMobile() {
   const pathname = usePathname()
@@ -160,6 +161,7 @@ export default function SideNavBarMobile() {
       <div className="w-full flex-1">
         <form></form>
       </div>
+      <TenantSwitcher />
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" size="sm" className="relative h-8 w-8 rounded-full">

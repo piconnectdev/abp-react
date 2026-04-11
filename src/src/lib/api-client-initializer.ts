@@ -22,7 +22,7 @@ export function configureAdminApiClient() {
 
   // Ghi đè lại baseUrl của core-client mặc định
   coreClient.setConfig({
-    baseUrl: process.env.NEXT_PUBLIC_APPS_API_URL,
+    baseUrl: process.env.NEXT_PUBLIC_API_APPS_URL,
   })
 
   // Gắn interceptor để tự động thêm token

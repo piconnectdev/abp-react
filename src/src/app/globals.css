@@ -1,6 +1,7 @@
+@import "https://rsms.me/inter/inter.css";
+@import '@measured/puck/dist/index.css';
 @import 'tailwindcss';
 @import 'tw-animate-css';
-@import '@measured/puck/dist/index.css';
 
 /* Custom utilities */
 .scrollbar-hide {

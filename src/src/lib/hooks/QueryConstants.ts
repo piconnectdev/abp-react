@@ -81,4 +81,7 @@ export const QueryNames = {
    */
   GetUserByUsername: 'GetUserByUsername',
   GetCompanies: 'GetCompanies',
+  GetOrganizationUnits: 'GetOrganizationUnits',
+  GetOrganizationUnitMembers: 'GetOrganizationUnitMembers',
+  GetTenantMembers: 'GetTenantMembers',
 }

@@ -98,6 +98,14 @@ export enum Permissions {
   CMSKIT_MENUS_DELETE = 'CmsKit.Menus.Delete',
   CMSKIT_GLOBAL_RESOURCES = 'CmsKit.GlobalResources',
 
+  // OrganizationUnit Management
+  ORG_UNITS = 'AbpIdentity.OrganizationUnits',
+  ORG_UNITS_CREATE = 'AbpIdentity.OrganizationUnits.Create',
+  ORG_UNITS_UPDATE = 'AbpIdentity.OrganizationUnits.Update',
+  ORG_UNITS_DELETE = 'AbpIdentity.OrganizationUnits.Delete',
+  ORG_UNITS_MANAGE_MEMBERS = 'AbpIdentity.OrganizationUnits.ManageMembers',
+  ORG_UNITS_MANAGE_ROLES = 'AbpIdentity.OrganizationUnits.ManageRoles',
+
   // Template
   ABP_TEMPLATE_TENANT = 'AbpTemplate.Tenant',
   ABP_TEMPLATE_TENANT_ADD_HOST = 'AbpTemplate.Tenant.AddHost',
