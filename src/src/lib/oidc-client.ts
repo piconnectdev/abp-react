@@ -18,12 +18,13 @@ export function getUserManager(): UserManager {
 
   if (!userManager) {
     const settings = {
-      authority: authClientConfig.url,
-      client_id: authClientConfig.client_id,
+      authority: authClientConfig.url!,
+      client_id: authClientConfig.client_id!,
       redirect_uri: `${window.location.origin}/auth/openiddict`,
       post_logout_redirect_uri: window.location.origin,
       scope: authClientConfig.scope,
       userStore: new WebStorageStateStore({ store: window.localStorage }),
+      automaticSilentRenew: true,
     }
     userManager = new UserManager(settings)
   }

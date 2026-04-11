@@ -1,28 +1,29 @@
 import { authClientConfig } from '@/config'
+import { parseApiError } from '@/lib/api/parse-api-error'
 import { tokenStorage } from '@/lib/api/token-storage'
 import { getUserManager } from '@/lib/oidc-client'
 
-export const SWITCH_TENANT_METHOD: 'api' | 'oidc' =
-  (process.env.NEXT_PUBLIC_SWITCH_TENANT_METHOD ?? 'api') as 'api' | 'oidc'
+export const SWITCH_TENANT_METHOD: 'api' | 'oidc' = (process.env.NEXT_PUBLIC_SWITCH_TENANT_METHOD ??
+  'api') as 'api' | 'oidc'
 
 /**
- * Method A: POST /api/v1/auth/switch-tenant
+ * Method A: GET /api/v1/auth/switch-tenant?id=tenantId
  * Gọi custom API trên admin server để lấy token mới cho tenant.
  */
 export async function switchTenantViaApi(tenantId: string): Promise<{ access_token: string }> {
   const userManager = getUserManager()
   const user = await userManager.getUser()
   const token = tokenStorage.getHost() ?? user?.access_token
-  const res = await fetch(`${authClientConfig.url}/api/v1/auth/switch-tenant`, {
-    method: 'POST',
+  const res = await fetch(`${authClientConfig.url}/api/v1/auth/switch-tenant?id=${tenantId}`, {
+    method: 'GET',
     headers: {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${token}`,
     },
-    body: JSON.stringify({ tenantId }),
   })
-  if (!res.ok) throw new Error(await res.text())
-  return res.json()
+  if (!res.ok) throw await parseApiError(res)
+  const data = await res.json()
+  return data.accessToken
 }
 
 /**
@@ -45,7 +46,7 @@ export async function switchTenantViaOidc(
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     body: params.toString(),
   })
-  if (!res.ok) throw new Error(await res.text())
+  if (!res.ok) throw await parseApiError(res)
   return res.json()
 }
 

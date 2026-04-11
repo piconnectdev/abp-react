@@ -52,12 +52,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setTenantToken(null)
     }
 
+    const onSilentRenewError = () => {
+      userManager.signinRedirect()
+    }
+    const onAccessTokenExpired = () => {
+      userManager.signinRedirect()
+    }
+
     userManager.events?.addUserLoaded(onUserLoaded)
     userManager.events?.addUserUnloaded(onUserUnloaded)
+    userManager.events?.addSilentRenewError(onSilentRenewError)
+    userManager.events?.addAccessTokenExpired(onAccessTokenExpired)
 
     return () => {
       userManager.events?.removeUserLoaded(onUserLoaded)
       userManager.events?.removeUserUnloaded(onUserUnloaded)
+      userManager.events?.removeSilentRenewError(onSilentRenewError)
+      userManager.events?.removeAccessTokenExpired(onAccessTokenExpired)
     }
   }, [])
 
