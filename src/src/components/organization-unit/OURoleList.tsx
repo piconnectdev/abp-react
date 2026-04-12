@@ -10,7 +10,11 @@ import {
 } from '@/components/ui/sheet'
 import { useToast } from '@/components/ui/use-toast'
 import { OrganizationUnitDto } from '@/lib/api/admin/organization-unit-api'
-import { useAddOURoles, useRemoveOURole } from '@/lib/hooks/useOrganizationUnits'
+import {
+  useAddOURoles,
+  useOrganizationUnitRoles,
+  useRemoveOURole,
+} from '@/lib/hooks/useOrganizationUnits'
 import { useRoles } from '@/lib/hooks/useRoles'
 import { Loader2, ShieldCheck } from 'lucide-react'
 
@@ -20,13 +24,16 @@ type Props = {
 }
 
 export const OURoleList = ({ unit, onDismiss }: Props) => {
-  const { data: allRolesData, isLoading } = useRoles(0, 100)
+  // Live data from API — updates after each toggle (query invalidated on success)
+  const { data: ouRolesData, isLoading: ouRolesLoading } = useOrganizationUnitRoles(unit.id)
+  const { data: allRolesData, isLoading: allRolesLoading } = useRoles(0, 100)
   const addRoles = useAddOURoles()
   const removeRole = useRemoveOURole()
   const { toast } = useToast()
 
-  // unit.roles contains role names from the DTO
-  const currentRoleNames = new Set(unit.roles ?? [])
+  const currentRoleIds = new Set(ouRolesData?.items?.map((r) => r.id) ?? [])
+  const isLoading = ouRolesLoading || allRolesLoading
+  const isPending = addRoles.isPending || removeRole.isPending
 
   const handleToggle = async (roleId: string, roleName: string, isChecked: boolean) => {
     try {
@@ -41,8 +48,6 @@ export const OURoleList = ({ unit, onDismiss }: Props) => {
       toast({ title: 'Lỗi', description: 'Không thể cập nhật role', variant: 'destructive' })
     }
   }
-
-  const isPending = addRoles.isPending || removeRole.isPending
 
   return (
     <Sheet open onOpenChange={onDismiss}>
@@ -63,25 +68,22 @@ export const OURoleList = ({ unit, onDismiss }: Props) => {
 
           {!isLoading && (
             <div className="space-y-2 max-h-[70vh] overflow-y-auto">
-              {(allRolesData?.items ?? []).map((role) => {
-                const checked = currentRoleNames.has(role.name!)
-                return (
-                  <div key={role.id} className="flex items-center gap-3 p-2 rounded hover:bg-muted">
-                    <Checkbox
-                      id={`ou-role-${role.id}`}
-                      checked={checked}
-                      disabled={isPending}
-                      onCheckedChange={(v) => handleToggle(role.id!, role.name!, !!v)}
-                    />
-                    <Label
-                      htmlFor={`ou-role-${role.id}`}
-                      className="cursor-pointer font-normal flex-1"
-                    >
-                      {role.name}
-                    </Label>
-                  </div>
-                )
-              })}
+              {(allRolesData?.items ?? []).map((role) => (
+                <div key={role.id} className="flex items-center gap-3 p-2 rounded hover:bg-muted">
+                  <Checkbox
+                    id={`ou-role-${role.id}`}
+                    checked={currentRoleIds.has(role.id!)}
+                    disabled={isPending}
+                    onCheckedChange={(v) => handleToggle(role.id!, role.name!, !!v)}
+                  />
+                  <Label
+                    htmlFor={`ou-role-${role.id}`}
+                    className="cursor-pointer font-normal flex-1"
+                  >
+                    {role.name}
+                  </Label>
+                </div>
+              ))}
               {(allRolesData?.items ?? []).length === 0 && (
                 <p className="text-sm text-muted-foreground text-center py-4">Không có role nào</p>
               )}

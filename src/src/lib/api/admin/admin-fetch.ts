@@ -46,7 +46,7 @@ export async function adminGet<T>(
   return res.json()
 }
 
-export async function adminPost<T>(
+export async function adminPost<T = void>(
   path: string,
   body: unknown,
   tenantId?: string
@@ -57,10 +57,11 @@ export async function adminPost<T>(
     body: JSON.stringify(body),
   })
   if (!res.ok) throw await parseApiError(res)
-  return res.json()
+  const text = await res.text()
+  return (text ? JSON.parse(text) : undefined) as T
 }
 
-export async function adminPut<T>(
+export async function adminPut<T = void>(
   path: string,
   body: unknown,
   tenantId?: string
@@ -71,7 +72,8 @@ export async function adminPut<T>(
     body: JSON.stringify(body),
   })
   if (!res.ok) throw await parseApiError(res)
-  return res.json()
+  const text = await res.text()
+  return (text ? JSON.parse(text) : undefined) as T
 }
 
 export async function adminDelete(path: string, tenantId?: string): Promise<void> {

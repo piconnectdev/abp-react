@@ -69,7 +69,8 @@ export const ouApi = {
   removeMember: (id: string, userId: string): Promise<void> =>
     adminDelete(`/api/identity/organization-units/${id}/members/${userId}`),
 
-  getRoles: (id: string): Promise<void> => adminGet(`/api/identity/organization-units/${id}/roles`),
+  getRoles: (id: string): Promise<{ items: OURoleDto[]; totalCount: number }> =>
+    adminGet(`/api/identity/organization-units/${id}/roles`, { MaxResultCount: 1000 }),
 
   addRoles: (id: string, roleIds: string[]): Promise<void> =>
     adminPost(`/api/identity/organization-units/${id}/roles`, { roleIds }),

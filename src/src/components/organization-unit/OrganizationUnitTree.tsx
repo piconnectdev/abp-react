@@ -116,7 +116,7 @@ function OUTreeNode({
 }: NodeProps) {
   const [expanded, setExpanded] = useState(true)
   const hasChildren = (unit.children?.length ?? 0) > 0
-  const hasActions = canManageMembers || canManageRoles || canCreate || canUpdate || canDelete
+  const hasActions = true // Thành viên always shown; other actions gated by permission
 
   return (
     <div>
@@ -139,12 +139,31 @@ function OUTreeNode({
         {/* Name + badges */}
         <span className="flex-1 text-sm font-medium">{unit.displayName}</span>
         {unit.code && (
-          <span className="text-xs text-muted-foreground font-mono hidden sm:inline">{unit.code}</span>
+          <span className="text-xs text-muted-foreground font-mono hidden md:inline">{unit.code}</span>
         )}
-        <Badge variant="secondary" className="text-xs hidden sm:flex">
+        {hasChildren && (
+          <Badge variant="outline" className="text-xs hidden sm:flex" title="Số đơn vị con">
+            {unit.children!.length}
+          </Badge>
+        )}
+        <Badge
+          variant="secondary"
+          className="text-xs hidden sm:flex"
+          title={`${unit.memberCount} thành viên`}
+        >
           <Users className="h-3 w-3 mr-1" />
           {unit.memberCount}
         </Badge>
+        {unit.roleCount > 0 && (
+          <Badge
+            variant="secondary"
+            className="text-xs hidden sm:flex"
+            title={(unit.roles ?? []).join(', ') || `${unit.roleCount} roles`}
+          >
+            <ShieldCheck className="h-3 w-3 mr-1" />
+            {unit.roleCount}
+          </Badge>
+        )}
 
         {/* Actions dropdown */}
         {hasActions && (
@@ -160,26 +179,11 @@ function OUTreeNode({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              {canManageMembers && (
-                <DropdownMenuItem onClick={() => onAction({ type: 'members', unit })}>
-                  <Users className="h-4 w-4 mr-2" />
-                  Thành viên
-                </DropdownMenuItem>
-              )}
-              {canManageRoles && (
-                <DropdownMenuItem onClick={() => onAction({ type: 'roles', unit })}>
-                  <ShieldCheck className="h-4 w-4 mr-2" />
-                  Roles
-                </DropdownMenuItem>
-              )}
               {canCreate && (
                 <DropdownMenuItem onClick={() => onAction({ type: 'add', parentId: unit.id })}>
                   <Plus className="h-4 w-4 mr-2" />
                   Thêm đơn vị con
                 </DropdownMenuItem>
-              )}
-              {(canManageMembers || canManageRoles || canCreate) && (canUpdate || canDelete) && (
-                <DropdownMenuSeparator />
               )}
               {canUpdate && (
                 <DropdownMenuItem onClick={() => onAction({ type: 'edit', unit })}>
@@ -200,6 +204,20 @@ function OUTreeNode({
                 >
                   <Trash2 className="h-4 w-4 mr-2" />
                   Xoá
+                </DropdownMenuItem>
+              )}
+              {(canCreate || canUpdate || canDelete) && (canManageMembers || canManageRoles) && (
+                <DropdownMenuSeparator />
+              )}
+              <DropdownMenuItem onClick={() => onAction({ type: 'members', unit })}>
+                <Users className="h-4 w-4 mr-2" />
+                Thành viên
+              </DropdownMenuItem>
+              {canManageRoles && <DropdownMenuSeparator />}
+              {canManageRoles && (
+                <DropdownMenuItem onClick={() => onAction({ type: 'roles', unit })}>
+                  <ShieldCheck className="h-4 w-4 mr-2" />
+                  Roles
                 </DropdownMenuItem>
               )}
             </DropdownMenuContent>

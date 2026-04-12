@@ -93,7 +93,8 @@ export const useAddOURoles = () => {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: ({ id, roleIds }: { id: string; roleIds: string[] }) => ouApi.addRoles(id, roleIds),
-    onSuccess: () => {
+    onSuccess: (_data, { id }) => {
+      queryClient.invalidateQueries({ queryKey: [QueryNames.GetOrganizationUnitRoles, id] })
       queryClient.invalidateQueries({ queryKey: [QueryNames.GetOrganizationUnits] })
     },
   })
@@ -103,7 +104,8 @@ export const useRemoveOURole = () => {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: ({ id, roleId }: { id: string; roleId: string }) => ouApi.removeRole(id, roleId),
-    onSuccess: () => {
+    onSuccess: (_data, { id }) => {
+      queryClient.invalidateQueries({ queryKey: [QueryNames.GetOrganizationUnitRoles, id] })
       queryClient.invalidateQueries({ queryKey: [QueryNames.GetOrganizationUnits] })
     },
   })
