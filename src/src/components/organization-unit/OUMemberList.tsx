@@ -1,15 +1,14 @@
 'use client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-} from '@/components/ui/sheet'
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import { useToast } from '@/components/ui/use-toast'
 import { OrganizationUnitDto } from '@/lib/api/admin/organization-unit-api'
-import { useAddOUMembers, useOrganizationUnitMembers, useRemoveOUMember } from '@/lib/hooks/useOrganizationUnits'
+import {
+  useAddOUMembers,
+  useOrganizationUnitMembers,
+  useRemoveOUMember,
+} from '@/lib/hooks/useOrganizationUnits'
 import { useUsers } from '@/lib/hooks/useUsers'
 import { Loader2, Plus, Trash2, Users } from 'lucide-react'
 import { useState } from 'react'
@@ -140,7 +139,7 @@ export const OUMemberList = ({ unit, onDismiss }: Props) => {
                     size="icon"
                     variant="ghost"
                     className="h-8 w-8 text-destructive hover:text-destructive"
-                    onClick={() => handleRemove(member.userId, member.userName)}
+                    onClick={() => handleRemove(member.id, member.userName)}
                     disabled={remove.isPending}
                   >
                     <Trash2 className="h-4 w-4" />
