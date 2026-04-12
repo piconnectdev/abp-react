@@ -81,6 +81,14 @@ export const useMoveOrganizationUnit = () => {
   })
 }
 
+export const useOrganizationUnitRoles = (ouId: string | null) => {
+  return useQuery({
+    queryKey: [QueryNames.GetOrganizationUnitRoles, ouId],
+    queryFn: () => ouApi.getRoles(ouId!),
+    enabled: !!ouId,
+  })
+}
+
 export const useAddOURoles = () => {
   const queryClient = useQueryClient()
   return useMutation({

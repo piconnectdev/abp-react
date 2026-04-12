@@ -83,5 +83,6 @@ export const QueryNames = {
   GetCompanies: 'GetCompanies',
   GetOrganizationUnits: 'GetOrganizationUnits',
   GetOrganizationUnitMembers: 'GetOrganizationUnitMembers',
+  GetOrganizationUnitRoles: 'GetOrganizationUnitRoles',
   GetTenantMembers: 'GetTenantMembers',
 }

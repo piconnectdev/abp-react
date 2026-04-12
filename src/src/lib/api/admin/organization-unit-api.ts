@@ -3,8 +3,9 @@ import { adminDelete, adminGet, adminPost, adminPut } from './admin-fetch'
 export interface OrganizationUnitDto {
   id: string
   parentId: string | null
-  code: string
-  displayName: string
+  code?: string | null
+  displayName?: string | null
+  roles?: string[]
   memberCount: number
   roleCount: number
   children?: OrganizationUnitDto[]
@@ -16,6 +17,11 @@ export interface OUMemberDto {
   userName: string
   name: string
   email: string
+}
+
+export interface OURoleDto {
+  id: string
+  name: string
 }
 
 export function buildOUTree(items: OrganizationUnitDto[]): OrganizationUnitDto[] {
@@ -62,6 +68,8 @@ export const ouApi = {
 
   removeMember: (id: string, userId: string): Promise<void> =>
     adminDelete(`/api/identity/organization-units/${id}/members/${userId}`),
+
+  getRoles: (id: string): Promise<void> => adminGet(`/api/identity/organization-units/${id}/roles`),
 
   addRoles: (id: string, roleIds: string[]): Promise<void> =>
     adminPost(`/api/identity/organization-units/${id}/roles`, { roleIds }),

@@ -1,21 +1,32 @@
 'use client'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import { OrganizationUnitDto } from '@/lib/api/admin/organization-unit-api'
-import { Permissions } from '@/lib/utils'
 import { useAppConfig } from '@/lib/hooks/useAppConfig'
-import { ChevronDown, ChevronRight, Pencil, Plus, Trash2, Users } from 'lucide-react'
+import { Permissions } from '@/lib/utils'
+import { ChevronDown, ChevronRight, Cog, MoveVertical, Pencil, Plus, ShieldCheck, Trash2, Users } from 'lucide-react'
 import { useState } from 'react'
 import { AddOrganizationUnit } from './AddOrganizationUnit'
 import { DeleteOrganizationUnit } from './DeleteOrganizationUnit'
 import { EditOrganizationUnit } from './EditOrganizationUnit'
+import { MoveOrganizationUnit } from './MoveOrganizationUnit'
 import { OUMemberList } from './OUMemberList'
+import { OURoleList } from './OURoleList'
 
 type DialogState =
   | { type: 'add'; parentId: string | null }
   | { type: 'edit'; unit: OrganizationUnitDto }
   | { type: 'delete'; unit: OrganizationUnitDto }
   | { type: 'members'; unit: OrganizationUnitDto }
+  | { type: 'roles'; unit: OrganizationUnitDto }
+  | { type: 'move'; unit: OrganizationUnitDto }
   | null
 
 type Props = {
@@ -31,6 +42,7 @@ export const OrganizationUnitTree = ({ units }: Props) => {
   const canUpdate = !!policies[Permissions.ORG_UNITS_UPDATE]
   const canDelete = !!policies[Permissions.ORG_UNITS_DELETE]
   const canManageMembers = !!policies[Permissions.ORG_UNITS_MANAGE_MEMBERS]
+  const canManageRoles = !!policies[Permissions.ORG_UNITS_MANAGE_ROLES]
 
   return (
     <div className="space-y-1">
@@ -44,6 +56,7 @@ export const OrganizationUnitTree = ({ units }: Props) => {
           canUpdate={canUpdate}
           canDelete={canDelete}
           canManageMembers={canManageMembers}
+          canManageRoles={canManageRoles}
           onAction={setDialog}
         />
       ))}
@@ -64,6 +77,16 @@ export const OrganizationUnitTree = ({ units }: Props) => {
       {dialog?.type === 'members' && (
         <OUMemberList unit={dialog.unit} onDismiss={() => setDialog(null)} />
       )}
+      {dialog?.type === 'roles' && (
+        <OURoleList unit={dialog.unit} onDismiss={() => setDialog(null)} />
+      )}
+      {dialog?.type === 'move' && (
+        <MoveOrganizationUnit
+          unit={dialog.unit}
+          allUnits={units}
+          onDismiss={() => setDialog(null)}
+        />
+      )}
     </div>
   )
 }
@@ -76,6 +99,7 @@ type NodeProps = {
   canUpdate: boolean
   canDelete: boolean
   canManageMembers: boolean
+  canManageRoles: boolean
   onAction: (d: DialogState) => void
 }
 
@@ -87,10 +111,12 @@ function OUTreeNode({
   canUpdate,
   canDelete,
   canManageMembers,
+  canManageRoles,
   onAction,
 }: NodeProps) {
   const [expanded, setExpanded] = useState(true)
   const hasChildren = (unit.children?.length ?? 0) > 0
+  const hasActions = canManageMembers || canManageRoles || canCreate || canUpdate || canDelete
 
   return (
     <div>
@@ -112,59 +138,73 @@ function OUTreeNode({
 
         {/* Name + badges */}
         <span className="flex-1 text-sm font-medium">{unit.displayName}</span>
-        <span className="text-xs text-muted-foreground font-mono hidden sm:inline">{unit.code}</span>
+        {unit.code && (
+          <span className="text-xs text-muted-foreground font-mono hidden sm:inline">{unit.code}</span>
+        )}
         <Badge variant="secondary" className="text-xs hidden sm:flex">
           <Users className="h-3 w-3 mr-1" />
           {unit.memberCount}
         </Badge>
 
-        {/* Actions */}
-        <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-          {canManageMembers && (
-            <Button
-              size="icon"
-              variant="ghost"
-              className="h-7 w-7"
-              title="Quản lý thành viên"
-              onClick={() => onAction({ type: 'members', unit })}
-            >
-              <Users className="h-3.5 w-3.5" />
-            </Button>
-          )}
-          {canCreate && (
-            <Button
-              size="icon"
-              variant="ghost"
-              className="h-7 w-7"
-              title="Thêm đơn vị con"
-              onClick={() => onAction({ type: 'add', parentId: unit.id })}
-            >
-              <Plus className="h-3.5 w-3.5" />
-            </Button>
-          )}
-          {canUpdate && (
-            <Button
-              size="icon"
-              variant="ghost"
-              className="h-7 w-7"
-              title="Chỉnh sửa"
-              onClick={() => onAction({ type: 'edit', unit })}
-            >
-              <Pencil className="h-3.5 w-3.5" />
-            </Button>
-          )}
-          {canDelete && (
-            <Button
-              size="icon"
-              variant="ghost"
-              className="h-7 w-7 text-destructive hover:text-destructive"
-              title="Xoá"
-              onClick={() => onAction({ type: 'delete', unit })}
-            >
-              <Trash2 className="h-3.5 w-3.5" />
-            </Button>
-          )}
-        </div>
+        {/* Actions dropdown */}
+        {hasActions && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                size="sm"
+                variant="ghost"
+                className="h-7 px-2 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1"
+              >
+                <Cog className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline text-xs">Actions</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {canManageMembers && (
+                <DropdownMenuItem onClick={() => onAction({ type: 'members', unit })}>
+                  <Users className="h-4 w-4 mr-2" />
+                  Thành viên
+                </DropdownMenuItem>
+              )}
+              {canManageRoles && (
+                <DropdownMenuItem onClick={() => onAction({ type: 'roles', unit })}>
+                  <ShieldCheck className="h-4 w-4 mr-2" />
+                  Roles
+                </DropdownMenuItem>
+              )}
+              {canCreate && (
+                <DropdownMenuItem onClick={() => onAction({ type: 'add', parentId: unit.id })}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Thêm đơn vị con
+                </DropdownMenuItem>
+              )}
+              {(canManageMembers || canManageRoles || canCreate) && (canUpdate || canDelete) && (
+                <DropdownMenuSeparator />
+              )}
+              {canUpdate && (
+                <DropdownMenuItem onClick={() => onAction({ type: 'edit', unit })}>
+                  <Pencil className="h-4 w-4 mr-2" />
+                  Đổi tên
+                </DropdownMenuItem>
+              )}
+              {canUpdate && (
+                <DropdownMenuItem onClick={() => onAction({ type: 'move', unit })}>
+                  <MoveVertical className="h-4 w-4 mr-2" />
+                  Di chuyển
+                </DropdownMenuItem>
+              )}
+              {canDelete && (
+                <DropdownMenuItem
+                  className="text-destructive focus:text-destructive"
+                  onClick={() => onAction({ type: 'delete', unit })}
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Xoá
+                </DropdownMenuItem>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
       </div>
 
       {hasChildren && expanded && (
@@ -179,6 +219,7 @@ function OUTreeNode({
               canUpdate={canUpdate}
               canDelete={canDelete}
               canManageMembers={canManageMembers}
+              canManageRoles={canManageRoles}
               onAction={onAction}
             />
           ))}

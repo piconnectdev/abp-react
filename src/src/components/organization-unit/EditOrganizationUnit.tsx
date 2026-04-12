@@ -20,7 +20,7 @@ type Props = {
 }
 
 export const EditOrganizationUnit = ({ unit, onDismiss }: Props) => {
-  const [displayName, setDisplayName] = useState(unit.displayName)
+  const [displayName, setDisplayName] = useState(unit.displayName ?? '')
   const { toast } = useToast()
   const update = useUpdateOrganizationUnit()
 
