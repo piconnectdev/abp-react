@@ -1,6 +1,4 @@
-// OrganizationUnit API
-// Phase 1: MOCK DATA để preview UI.
-// TODO: swap mock → adminGet/Post/Put/Delete khi backend expose /api/identity/organization-units
+import { adminDelete, adminGet, adminPost, adminPut } from './admin-fetch'
 
 export interface OrganizationUnitDto {
   id: string
@@ -14,126 +12,60 @@ export interface OrganizationUnitDto {
 
 export interface OUMemberDto {
   id: string
+  userId: string
   userName: string
   name: string
   email: string
 }
 
-let mockData: OrganizationUnitDto[] = [
-  {
-    id: '1',
-    parentId: null,
-    code: '00001',
-    displayName: 'Công ty TNHH ABC',
-    memberCount: 5,
-    roleCount: 2,
-    children: [
-      {
-        id: '11',
-        parentId: '1',
-        code: '00001.00001',
-        displayName: 'Phòng Kỹ thuật',
-        memberCount: 8,
-        roleCount: 1,
-      },
-      {
-        id: '12',
-        parentId: '1',
-        code: '00001.00002',
-        displayName: 'Phòng Kinh doanh',
-        memberCount: 6,
-        roleCount: 1,
-      },
-    ],
-  },
-  {
-    id: '2',
-    parentId: null,
-    code: '00002',
-    displayName: 'Chi nhánh Hà Nội',
-    memberCount: 3,
-    roleCount: 1,
-    children: [
-      {
-        id: '21',
-        parentId: '2',
-        code: '00002.00001',
-        displayName: 'Bộ phận Hỗ trợ',
-        memberCount: 4,
-        roleCount: 1,
-      },
-    ],
-  },
-]
-
-function findAndUpdate(
-  items: OrganizationUnitDto[],
-  id: string,
-  updater: (item: OrganizationUnitDto) => OrganizationUnitDto | null
-): boolean {
-  for (let i = 0; i < items.length; i++) {
-    if (items[i].id === id) {
-      const result = updater(items[i])
-      if (result === null) {
-        items.splice(i, 1)
-      } else {
-        items[i] = result
-      }
-      return true
+export function buildOUTree(items: OrganizationUnitDto[]): OrganizationUnitDto[] {
+  const map = new Map(items.map((i) => [i.id, { ...i, children: [] as OrganizationUnitDto[] }]))
+  const roots: OrganizationUnitDto[] = []
+  for (const item of map.values()) {
+    if (item.parentId && map.has(item.parentId)) {
+      map.get(item.parentId)!.children!.push(item)
+    } else {
+      roots.push(item)
     }
-    if (items[i].children && findAndUpdate(items[i].children!, id, updater)) return true
   }
-  return false
+  return roots
 }
 
 export const ouApi = {
   getList: async (): Promise<{ items: OrganizationUnitDto[]; totalCount: number }> => {
-    await new Promise((r) => setTimeout(r, 200)) // simulate network
-    return { items: mockData, totalCount: mockData.length }
+    const res = await adminGet<{ items: OrganizationUnitDto[]; totalCount: number }>(
+      '/api/identity/organization-units',
+      { MaxResultCount: 1000 }
+    )
+    return { items: buildOUTree(res.items), totalCount: res.totalCount }
   },
 
-  create: async (dto: {
-    displayName: string
-    parentId?: string | null
-  }): Promise<OrganizationUnitDto> => {
-    const newItem: OrganizationUnitDto = {
-      id: Date.now().toString(),
-      code: `${Date.now()}`,
-      memberCount: 0,
-      roleCount: 0,
-      parentId: dto.parentId ?? null,
-      displayName: dto.displayName,
-      children: [],
-    }
-    if (dto.parentId) {
-      findAndUpdate(mockData, dto.parentId, (parent) => {
-        parent.children = [...(parent.children ?? []), newItem]
-        return parent
-      })
-    } else {
-      mockData = [...mockData, newItem]
-    }
-    return newItem
-  },
+  create: (dto: { displayName: string; parentId?: string | null }): Promise<OrganizationUnitDto> =>
+    adminPost('/api/identity/organization-units', dto),
 
-  update: async (id: string, dto: { displayName: string }): Promise<OrganizationUnitDto> => {
-    let updated!: OrganizationUnitDto
-    findAndUpdate(mockData, id, (item) => {
-      updated = { ...item, ...dto }
-      return updated
-    })
-    return updated
-  },
+  update: (id: string, dto: { displayName: string }): Promise<OrganizationUnitDto> =>
+    adminPut(`/api/identity/organization-units/${id}`, dto),
 
-  delete: async (id: string): Promise<void> => {
-    findAndUpdate(mockData, id, () => null)
-  },
+  delete: (id: string): Promise<void> => adminDelete(`/api/identity/organization-units/${id}`),
 
-  getMembers: async (_id: string): Promise<{ items: OUMemberDto[]; totalCount: number }> => {
-    return { items: [], totalCount: 0 }
-  },
+  move: (id: string, parentId: string | null): Promise<OrganizationUnitDto> =>
+    adminPost(`/api/identity/organization-units/${id}/move`, { parentId }),
 
-  addMembers: async (_id: string, _userIds: string[]): Promise<void> => {},
+  getMembers: (
+    id: string,
+    params?: { SkipCount?: number; MaxResultCount?: number; Filter?: string }
+  ): Promise<{ items: OUMemberDto[]; totalCount: number }> =>
+    adminGet(`/api/identity/organization-units/${id}/members`, params),
 
-  removeMember: async (_id: string, _userId: string): Promise<void> => {},
+  addMembers: (id: string, userIds: string[]): Promise<void> =>
+    adminPost(`/api/identity/organization-units/${id}/members`, { userIds }),
+
+  removeMember: (id: string, userId: string): Promise<void> =>
+    adminDelete(`/api/identity/organization-units/${id}/members/${userId}`),
+
+  addRoles: (id: string, roleIds: string[]): Promise<void> =>
+    adminPost(`/api/identity/organization-units/${id}/roles`, { roleIds }),
+
+  removeRole: (id: string, roleId: string): Promise<void> =>
+    adminDelete(`/api/identity/organization-units/${id}/roles/${roleId}`),
 }

@@ -1,4 +1,4 @@
-import { ouApi, OrganizationUnitDto } from '@/lib/api/admin/organization-unit-api'
+import { ouApi } from '@/lib/api/admin/organization-unit-api'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { QueryNames } from './QueryConstants'
 
@@ -65,6 +65,37 @@ export const useRemoveOUMember = (ouId: string) => {
     mutationFn: (userId: string) => ouApi.removeMember(ouId, userId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [QueryNames.GetOrganizationUnitMembers, ouId] })
+      queryClient.invalidateQueries({ queryKey: [QueryNames.GetOrganizationUnits] })
+    },
+  })
+}
+
+export const useMoveOrganizationUnit = () => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, parentId }: { id: string; parentId: string | null }) =>
+      ouApi.move(id, parentId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [QueryNames.GetOrganizationUnits] })
+    },
+  })
+}
+
+export const useAddOURoles = () => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, roleIds }: { id: string; roleIds: string[] }) => ouApi.addRoles(id, roleIds),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [QueryNames.GetOrganizationUnits] })
+    },
+  })
+}
+
+export const useRemoveOURole = () => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, roleId }: { id: string; roleId: string }) => ouApi.removeRole(id, roleId),
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [QueryNames.GetOrganizationUnits] })
     },
   })
