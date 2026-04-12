@@ -1,4 +1,4 @@
-import { ouApi } from '@/lib/api/admin/organization-unit-api'
+import { ouApi, OrganizationUnitUserInput } from '@/lib/api/admin/organization-unit-api'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { QueryNames } from './QueryConstants'
 
@@ -51,7 +51,7 @@ export const useOrganizationUnitMembers = (ouId: string | null) => {
 export const useAddOUMembers = (ouId: string) => {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (userIds: string[]) => ouApi.addMembers(ouId, userIds),
+    mutationFn: (input: OrganizationUnitUserInput) => ouApi.addMembers(ouId, input),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [QueryNames.GetOrganizationUnitMembers, ouId] })
       queryClient.invalidateQueries({ queryKey: [QueryNames.GetOrganizationUnits] })

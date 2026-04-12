@@ -24,6 +24,11 @@ export interface OURoleDto {
   name: string
 }
 
+export interface OrganizationUnitUserInput {
+  userIds?: string[]
+  userNameOrEmail?: string[]
+}
+
 export function buildOUTree(items: OrganizationUnitDto[]): OrganizationUnitDto[] {
   const map = new Map(items.map((i) => [i.id, { ...i, children: [] as OrganizationUnitDto[] }]))
   const roots: OrganizationUnitDto[] = []
@@ -63,8 +68,8 @@ export const ouApi = {
   ): Promise<{ items: OUMemberDto[]; totalCount: number }> =>
     adminGet(`/api/identity/organization-units/${id}/members`, params),
 
-  addMembers: (id: string, userIds: string[]): Promise<void> =>
-    adminPost(`/api/identity/organization-units/${id}/members`, { userIds }),
+  addMembers: (id: string, input: OrganizationUnitUserInput): Promise<void> =>
+    adminPost(`/api/identity/organization-units/${id}/members`, input),
 
   removeMember: (id: string, userId: string): Promise<void> =>
     adminDelete(`/api/identity/organization-units/${id}/members/${userId}`),
