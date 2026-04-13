@@ -11,6 +11,7 @@ import {
 import { OrganizationUnitDto } from '@/lib/api/admin/organization-unit-api'
 import { useAppConfig } from '@/lib/hooks/useAppConfig'
 import { Permissions } from '@/lib/utils'
+import { useLanguage } from '@/context/LanguageContext'
 import { ChevronDown, ChevronRight, Cog, MoveVertical, Pencil, Plus, ShieldCheck, Trash2, Users } from 'lucide-react'
 import { useState } from 'react'
 import { AddOrganizationUnit } from './AddOrganizationUnit'
@@ -115,8 +116,8 @@ function OUTreeNode({
   onAction,
 }: NodeProps) {
   const [expanded, setExpanded] = useState(true)
+  const { t } = useLanguage()
   const hasChildren = (unit.children?.length ?? 0) > 0
-  const hasActions = true // Thành viên always shown; other actions gated by permission
 
   return (
     <div>
@@ -142,14 +143,14 @@ function OUTreeNode({
           <span className="text-xs text-muted-foreground font-mono hidden md:inline">{unit.code}</span>
         )}
         {hasChildren && (
-          <Badge variant="outline" className="text-xs hidden sm:flex" title="Số đơn vị con">
+          <Badge variant="outline" className="text-xs hidden sm:flex" title={t('ou.children')}>
             {unit.children!.length}
           </Badge>
         )}
         <Badge
           variant="secondary"
           className="text-xs hidden sm:flex"
-          title={`${unit.memberCount} thành viên`}
+          title={`${unit.memberCount} ${t('ou.members')}`}
         >
           <Users className="h-3 w-3 mr-1" />
           {unit.memberCount}
@@ -158,7 +159,7 @@ function OUTreeNode({
           <Badge
             variant="secondary"
             className="text-xs hidden sm:flex"
-            title={(unit.roles ?? []).join(', ') || `${unit.roleCount} roles`}
+            title={(unit.roles ?? []).join(', ') || `${unit.roleCount} ${t('ou.roles')}`}
           >
             <ShieldCheck className="h-3 w-3 mr-1" />
             {unit.roleCount}
@@ -166,63 +167,61 @@ function OUTreeNode({
         )}
 
         {/* Actions dropdown */}
-        {hasActions && (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                size="sm"
-                variant="ghost"
-                className="h-7 px-2 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1"
-              >
-                <Cog className="h-3.5 w-3.5" />
-                <span className="hidden sm:inline text-xs">Actions</span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              {canCreate && (
-                <DropdownMenuItem onClick={() => onAction({ type: 'add', parentId: unit.id })}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Thêm đơn vị con
-                </DropdownMenuItem>
-              )}
-              {canUpdate && (
-                <DropdownMenuItem onClick={() => onAction({ type: 'edit', unit })}>
-                  <Pencil className="h-4 w-4 mr-2" />
-                  Đổi tên
-                </DropdownMenuItem>
-              )}
-              {canUpdate && (
-                <DropdownMenuItem onClick={() => onAction({ type: 'move', unit })}>
-                  <MoveVertical className="h-4 w-4 mr-2" />
-                  Di chuyển
-                </DropdownMenuItem>
-              )}
-              {canDelete && (
-                <DropdownMenuItem
-                  className="text-destructive focus:text-destructive"
-                  onClick={() => onAction({ type: 'delete', unit })}
-                >
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  Xoá
-                </DropdownMenuItem>
-              )}
-              {(canCreate || canUpdate || canDelete) && (canManageMembers || canManageRoles) && (
-                <DropdownMenuSeparator />
-              )}
-              <DropdownMenuItem onClick={() => onAction({ type: 'members', unit })}>
-                <Users className="h-4 w-4 mr-2" />
-                Thành viên
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              size="sm"
+              variant="ghost"
+              className="h-7 px-2 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1"
+            >
+              <Cog className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline text-xs">{t('common.actions')}</span>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            {canCreate && (
+              <DropdownMenuItem onClick={() => onAction({ type: 'add', parentId: unit.id })}>
+                <Plus className="h-4 w-4 mr-2" />
+                {t('ou.addChild')}
               </DropdownMenuItem>
-              {canManageRoles && <DropdownMenuSeparator />}
-              {canManageRoles && (
-                <DropdownMenuItem onClick={() => onAction({ type: 'roles', unit })}>
-                  <ShieldCheck className="h-4 w-4 mr-2" />
-                  Roles
-                </DropdownMenuItem>
-              )}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        )}
+            )}
+            {canUpdate && (
+              <DropdownMenuItem onClick={() => onAction({ type: 'edit', unit })}>
+                <Pencil className="h-4 w-4 mr-2" />
+                {t('ou.edit')}
+              </DropdownMenuItem>
+            )}
+            {canUpdate && (
+              <DropdownMenuItem onClick={() => onAction({ type: 'move', unit })}>
+                <MoveVertical className="h-4 w-4 mr-2" />
+                {t('ou.move')}
+              </DropdownMenuItem>
+            )}
+            {canDelete && (
+              <DropdownMenuItem
+                className="text-destructive focus:text-destructive"
+                onClick={() => onAction({ type: 'delete', unit })}
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                {t('ou.delete')}
+              </DropdownMenuItem>
+            )}
+            {(canCreate || canUpdate || canDelete) && (
+              <DropdownMenuSeparator />
+            )}
+            <DropdownMenuItem onClick={() => onAction({ type: 'members', unit })}>
+              <Users className="h-4 w-4 mr-2" />
+              {t('ou.members')}
+            </DropdownMenuItem>
+            {canManageRoles && <DropdownMenuSeparator />}
+            {canManageRoles && (
+              <DropdownMenuItem onClick={() => onAction({ type: 'roles', unit })}>
+                <ShieldCheck className="h-4 w-4 mr-2" />
+                {t('ou.roles')}
+              </DropdownMenuItem>
+            )}
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
       {hasChildren && expanded && (

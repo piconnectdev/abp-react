@@ -1,6 +1,7 @@
 'use client'
 
 import { AuthProvider } from '@/context/AuthContext'
+import { LanguageProvider } from '@/context/LanguageContext'
 import { configureAdminApiClient } from '@/lib/api-client-initializer'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { useState } from 'react'
@@ -23,7 +24,9 @@ export default function Providers({ children }: { children: React.ReactNode }) {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>{children}</AuthProvider>
+      <LanguageProvider>
+        <AuthProvider>{children}</AuthProvider>
+      </LanguageProvider>
     </QueryClientProvider>
   )
 }

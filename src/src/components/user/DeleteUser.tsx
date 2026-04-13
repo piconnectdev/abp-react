@@ -10,6 +10,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import { useToast } from '@/components/ui/use-toast'
+import { useLanguage } from '@/context/LanguageContext'
 import { useEffect, useState } from 'react'
 
 type DeleteUserProps = {
@@ -18,6 +19,7 @@ type DeleteUserProps = {
 }
 export const DeleteUser = ({ user: { userId, username }, onDismiss }: DeleteUserProps) => {
   const { toast } = useToast()
+  const { t } = useLanguage()
   const [open, setOpen] = useState<boolean>(false)
   const onYesEvent = async () => {
     try {
@@ -25,15 +27,15 @@ export const DeleteUser = ({ user: { userId, username }, onDismiss }: DeleteUser
         path: { id: userId },
       })
       toast({
-        title: 'Success',
-        description: `User "${username}" has been deleted successfully.`,
+        title: t('common.success'),
+        description: t('user.deleteSuccess', { name: username }),
       })
       onDismiss()
     } catch (err: unknown) {
       if (err instanceof Error) {
         toast({
-          title: 'Failed',
-          description: `There was a problem when deleting the user "${username}". Kindly try again.`,
+          title: t('common.error'),
+          description: t('user.deleteError', { name: username }),
           variant: 'destructive',
         })
       }
@@ -48,15 +50,14 @@ export const DeleteUser = ({ user: { userId, username }, onDismiss }: DeleteUser
     <AlertDialog open={open}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+          <AlertDialogTitle>{t('user.areYouSure')}</AlertDialogTitle>
           <AlertDialogDescription>
-            This action cannot be undone. This will permanently delete your this user &quot;
-            {username}&quot;
+            {t('user.deleteConfirm', { name: username })}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel onClick={onDismiss}>Cancel</AlertDialogCancel>
-          <AlertDialogAction onClick={onYesEvent}>Yes</AlertDialogAction>
+          <AlertDialogCancel onClick={onDismiss}>{t('common.cancel')}</AlertDialogCancel>
+          <AlertDialogAction onClick={onYesEvent}>{t('common.yes')}</AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>

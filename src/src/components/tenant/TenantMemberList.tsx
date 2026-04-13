@@ -23,9 +23,11 @@ import { Cog, PencilIcon, Power, Trash, UserPlus } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { EditMemberDialog } from './EditMemberDialog'
 import { InviteMember } from './InviteMember'
+import { useLanguage } from '@/context/LanguageContext'
 
 export const TenantMemberList = () => {
   const { toast } = useToast()
+  const { t } = useLanguage()
   const [searchStr, setSearchStr] = useState<string | undefined>()
   const [showInvite, setShowInvite] = useState(false)
   const [editMember, setEditMember] = useState<TenantMemberDto | null>(null)
@@ -45,12 +47,12 @@ export const TenantMemberList = () => {
   const pagination = useMemo(() => ({ pageIndex, pageSize }), [pageIndex, pageSize])
 
   const handleRemove = async (member: TenantMemberDto) => {
-    if (!confirm(`Xoá ${member.userName} khỏi tenant?`)) return
+    if (!confirm(t('tenant.members.deleteConfirm', { name: member.userName }))) return
     try {
       await remove.mutateAsync(member.id)
-      toast({ title: 'Đã xoá', description: `Đã xoá ${member.userName}` })
+      toast({ title: t('common.success'), description: t('tenant.members.deleteSuccess', { name: member.userName }) })
     } catch {
-      toast({ title: 'Lỗi', description: 'Không thể xoá thành viên', variant: 'destructive' })
+      toast({ title: t('common.error'), description: t('tenant.members.deleteError'), variant: 'destructive' })
     }
   }
 
@@ -63,22 +65,22 @@ export const TenantMemberList = () => {
         isActive: newActive,
       })
       toast({
-        title: newActive ? 'Đã kích hoạt' : 'Đã vô hiệu hoá',
+        title: newActive ? t('tenant.members.activateSuccess') : t('tenant.members.deactivateSuccess'),
         description: member.userName,
       })
     } catch {
-      toast({ title: 'Lỗi', description: 'Không thể cập nhật trạng thái', variant: 'destructive' })
+      toast({ title: t('common.error'), description: t('tenant.members.statusError'), variant: 'destructive' })
     }
   }
 
   const columns: ColumnDef<TenantMemberDto>[] = useMemo(
     () => [
       {
-        header: 'Tenant Members',
+        header: t('tenant.members.title'),
         columns: [
           {
             accessorKey: 'actions',
-            header: 'Actions',
+            header: t('common.actions'),
             cell: (info) => {
               const member = info.row.original
               return (
@@ -87,7 +89,7 @@ export const TenantMemberList = () => {
                     <DropdownMenuTrigger asChild>
                       <Button size="sm" className="flex items-center space-x-1">
                         <Cog width={16} height={16} />
-                        <span className="hidden sm:inline">Actions</span>
+                        <span className="hidden sm:inline">{t('common.actions')}</span>
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent>
@@ -95,7 +97,7 @@ export const TenantMemberList = () => {
                         <Button onClick={() => setEditMember(member)}>
                           <div className="flex items-center space-x-1">
                             <PencilIcon width={18} height={18} className="flex-1" />
-                            <span className="hidden sm:inline">Edit</span>
+                            <span className="hidden sm:inline">{t('common.edit')}</span>
                           </div>
                         </Button>
                       </DropdownMenuItem>
@@ -107,7 +109,7 @@ export const TenantMemberList = () => {
                           <div className="flex items-center space-x-1">
                             <Power width={18} height={18} className="flex-1" />
                             <span className="hidden sm:inline">
-                              {member.isActive ? 'Deactivate' : 'Activate'}
+                              {member.isActive ? t('tenant.members.deactivate') : t('tenant.members.activate')}
                             </span>
                           </div>
                         </Button>
@@ -116,7 +118,7 @@ export const TenantMemberList = () => {
                         <Button onClick={() => handleRemove(member)} disabled={remove.isPending}>
                           <div className="flex items-center space-x-1">
                             <Trash width={18} height={18} className="flex-1" />
-                            <span className="hidden sm:inline">Delete</span>
+                            <span className="hidden sm:inline">{t('common.delete')}</span>
                           </div>
                         </Button>
                       </DropdownMenuItem>
@@ -128,24 +130,24 @@ export const TenantMemberList = () => {
           },
           {
             accessorKey: 'userName',
-            header: 'Username',
+            header: t('tenant.members.username'),
           },
           {
             accessorKey: 'email',
-            header: 'Email',
+            header: t('common.email'),
           },
           {
             accessorKey: 'isActive',
-            header: 'Trạng thái',
+            header: t('common.status'),
             cell: (info) => (
               <Badge variant={info.getValue() ? 'default' : 'secondary'} className="text-xs">
-                {info.getValue() ? 'Hoạt động' : 'Vô hiệu'}
+                {info.getValue() ? t('common.active') : t('common.inactive')}
               </Badge>
             ),
           },
           {
             accessorKey: 'roles',
-            header: 'Roles',
+            header: t('tenant.members.roles'),
             cell: (info) => (
               <div className="flex gap-1 flex-wrap">
                 {((info.getValue() as string[]) ?? []).map((r) => (
@@ -179,7 +181,7 @@ export const TenantMemberList = () => {
         <Search onUpdate={(v) => setSearchStr(v || undefined)} value={searchStr ?? ''} />
         <Button onClick={() => setShowInvite(true)} className="gap-2 shrink-0">
           <UserPlus className="h-4 w-4" />
-          Mời thành viên
+          {t('tenant.members.invite')}
         </Button>
       </div>
 

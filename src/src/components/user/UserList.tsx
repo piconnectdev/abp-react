@@ -5,6 +5,7 @@ import { InlineError } from '@/components/ui/InlineError'
 import Loader from '@/components/ui/Loader'
 import { Search } from '@/components/ui/Search'
 import { useToast } from '@/components/ui/use-toast'
+import { useLanguage } from '@/context/LanguageContext'
 import { QueryNames } from '@/lib/hooks/QueryConstants'
 import { useUsers } from '@/lib/hooks/useUsers'
 import { Permissions, USER_ROLE } from '@/lib/utils'
@@ -23,6 +24,7 @@ type UserActionDialogState = {
 
 export const UserList = () => {
   const { toast } = useToast()
+  const { t } = useLanguage()
   const queryClient = useQueryClient()
 
   const [searchStr, setSearchStr] = useState<string>('')
@@ -44,25 +46,67 @@ export const UserList = () => {
   }
 
   const columns = useMemo(
-    () =>
-      getUserColumns({
-        onEdit: (user) =>
-          setUserActionDialog({
-            userId: user.id!,
-            userDto: user as IdentityUserUpdateDto,
-            dialogType: 'edit',
-          }),
-        onPermission: (user) =>
-          //window.location.href = `/admin/permissions/user/${user.userName}`,
-          (window.location.href = `/admin/permissions?type=user&id=${user.id}`),
-        onDelete: (user) =>
-          setUserActionDialog({
-            userId: user.id!,
-            userDto: user as IdentityUserUpdateDto,
-            dialogType: 'delete',
-          }),
-      }),
-    []
+    (): ColumnDef<IdentityUserDto>[] => [
+      {
+        header: t('user.title'),
+        columns: [
+          {
+            accessorKey: 'actions',
+            header: t('common.actions'),
+            cell: (info) => (
+              <PermissionActions
+                actions={[
+                  {
+                    icon: 'permission',
+                    policy: Permissions.USERS_MANAGE_PERMISSIONS,
+                    callback: () =>
+                      (window.location.href = `/admin/permissions?type=user&id=${info.row.original.id}`),
+                  },
+                  {
+                    icon: 'pencil',
+                    policy: Permissions.USERS_UPDATE,
+                    callback: () =>
+                      setUserActionDialog({
+                        userId: info.row.original.id!,
+                        userDto: info.row.original as IdentityUserUpdateDto,
+                        dialogType: 'edit',
+                      }),
+                  },
+                  {
+                    icon: 'trash',
+                    policy: Permissions.USERS_DELETE,
+                    visible: !info.row.original.userName?.includes(USER_ROLE.ADMIN),
+                    callback: () =>
+                      setUserActionDialog({
+                        userId: info.row.original.id!,
+                        userDto: info.row.original as IdentityUserUpdateDto,
+                        dialogType: 'delete',
+                      }),
+                  },
+                ]}
+              />
+            ),
+          },
+          {
+            accessorKey: 'userName',
+            header: t('user.userName'),
+            cell: (info) => info.getValue(),
+          },
+          {
+            accessorKey: 'email',
+            header: t('common.email'),
+            cell: (info) => info.getValue(),
+          },
+          {
+            accessorKey: 'isActive',
+            header: t('common.active'),
+            cell: (info) => (info.getValue() ? t('common.yes') : t('common.no')),
+          },
+        ],
+      },
+    ],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [t]
   )
 
   const table = useReactTable({
@@ -89,7 +133,6 @@ export const UserList = () => {
               onDismiss={handleActionComplete}
             />
           )}
-          {/* Permission navigation is handled by UserPermission component */}
           {userActionDialog.dialogType === 'delete' && (
             <DeleteUser
               user={{
@@ -110,57 +153,3 @@ export const UserList = () => {
     </>
   )
 }
-
-// Add this to a separate file: columns.ts
-const getUserColumns = (actions: {
-  onEdit: (user: IdentityUserDto) => void
-  onPermission: (user: IdentityUserDto) => void
-  onDelete: (user: IdentityUserDto) => void
-}): ColumnDef<IdentityUserDto>[] => [
-  {
-    header: 'User Management',
-    columns: [
-      {
-        accessorKey: 'actions',
-        header: 'Actions',
-        cell: (info) => (
-          <PermissionActions
-            actions={[
-              {
-                icon: 'permission',
-                policy: Permissions.USERS_MANAGE_PERMISSIONS,
-                callback: () => actions.onPermission(info.row.original),
-              },
-              {
-                icon: 'pencil',
-                policy: Permissions.USERS_UPDATE,
-                callback: () => actions.onEdit(info.row.original),
-              },
-              {
-                icon: 'trash',
-                policy: Permissions.USERS_DELETE,
-                visible: !info.row.original.userName?.includes(USER_ROLE.ADMIN),
-                callback: () => actions.onDelete(info.row.original),
-              },
-            ]}
-          />
-        ),
-      },
-      {
-        accessorKey: 'userName',
-        header: 'Username',
-        cell: (info) => info.getValue(),
-      },
-      {
-        accessorKey: 'email',
-        header: 'Email',
-        cell: (info) => info.getValue(),
-      },
-      {
-        accessorKey: 'isActive',
-        header: 'Active',
-        cell: (info) => (info.getValue() ? 'yes' : 'no'),
-      },
-    ],
-  },
-]

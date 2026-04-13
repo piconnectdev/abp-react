@@ -18,6 +18,7 @@ import {
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { useLanguage } from '@/context/LanguageContext'
 import { useAssignableRoles } from '@/lib/hooks/useAssignableRoles'
 import { useUserRoles } from '@/lib/hooks/useUserRoles'
 import classNames from 'clsx'
@@ -40,6 +41,7 @@ type UserEditProps = {
 export const UserEdit = ({ userDto, userId, onDismiss }: UserEditProps) => {
   const [open, setOpen] = useState(false)
   const { toast } = useToast()
+  const { t } = useLanguage()
   const queryClient = useQueryClient()
   const { handleSubmit, register } = useForm()
   const [roles, setRoles] = useState<RoleType[]>([])
@@ -56,16 +58,16 @@ export const UserEdit = ({ userDto, userId, onDismiss }: UserEditProps) => {
       await queryClient.invalidateQueries({ queryKey: [QueryNames.GetUsers] })
       await queryClient.invalidateQueries({ queryKey: [QueryNames.GetUserRoles, userId] })
       toast({
-        title: 'Success',
-        description: 'User Updated Successfully',
+        title: t('common.success'),
+        description: t('user.updateSuccess'),
         variant: 'default',
       })
       onCloseEvent()
     } catch (err: unknown) {
       if (err instanceof Error) {
         toast({
-          title: 'Failed',
-          description: "User update wasn&apos;t successfull.",
+          title: t('common.error'),
+          description: t('user.updateError'),
           variant: 'destructive',
         })
       }
@@ -111,15 +113,15 @@ export const UserEdit = ({ userDto, userId, onDismiss }: UserEditProps) => {
     <Dialog open={open} onOpenChange={onCloseEvent}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Upate a User: {userDto.userName}</DialogTitle>
+          <DialogTitle>{t('user.edit')}: {userDto.userName}</DialogTitle>
         </DialogHeader>
         <Tabs defaultValue={TABS_NAME.USERS_EDIT}>
           <TabsList className="w-full">
             <TabsTrigger value={TABS_NAME.USERS_EDIT} className="w-full">
-              User Information
+              {t('user.tabInfo')}
             </TabsTrigger>
             <TabsTrigger value={TABS_NAME.USERS_ROLE_ASSIGN} className="w-full">
-              Roles
+              {t('user.tabRoles')}
             </TabsTrigger>
           </TabsList>
           <TabsContent value={TABS_NAME.USERS_EDIT}>
@@ -127,26 +129,26 @@ export const UserEdit = ({ userDto, userId, onDismiss }: UserEditProps) => {
               <section className="flex flex-col space-y-5">
                 <Input
                   required
-                  placeholder="Name"
+                  placeholder={t('user.firstName')}
                   defaultValue={userDto.name ?? ''}
                   {...register('name')}
                 />
 
                 <Input
                   required
-                  placeholder="Surname"
+                  placeholder={t('user.lastName')}
                   defaultValue={userDto.surname ?? ''}
                   {...register('surname')}
                 />
                 <Input
                   required
-                  placeholder="Email"
+                  placeholder={t('user.email')}
                   defaultValue={userDto.email ?? ''}
                   {...register('email')}
                 />
                 <Input
                   required
-                  placeholder="Phone Number"
+                  placeholder={t('user.phone')}
                   defaultValue={userDto.phoneNumber ?? ''}
                   {...register('phoneNumber')}
                 />
@@ -159,9 +161,9 @@ export const UserEdit = ({ userDto, userId, onDismiss }: UserEditProps) => {
                     onCloseEvent()
                   }}
                 >
-                  Cancel
+                  {t('common.cancel')}
                 </Button>
-                <Button type="submit">Save</Button>
+                <Button type="submit">{t('common.save')}</Button>
               </DialogFooter>
             </form>
           </TabsContent>
@@ -169,7 +171,7 @@ export const UserEdit = ({ userDto, userId, onDismiss }: UserEditProps) => {
             {(assignableRoles?.isLoading || userRole?.isLoading) && <Loader />}
             {assignableRoles?.isError && (
               <div className="bg-error p-10 text-3xl">
-                There was an error while featching roles information for the {userDto.userName}
+                {t('user.rolesError')} {userDto.userName}
               </div>
             )}
             {!assignableRoles.isLoading && !assignableRoles.isError && !userRole.isLoading && (
@@ -198,9 +200,9 @@ export const UserEdit = ({ userDto, userId, onDismiss }: UserEditProps) => {
                   onCloseEvent()
                 }}
               >
-                Cancel
+                {t('common.cancel')}
               </Button>
-              <Button onClick={onRoleAssignedSaveEvent}>Save</Button>
+              <Button onClick={onRoleAssignedSaveEvent}>{t('common.save')}</Button>
             </DialogFooter>
           </TabsContent>
         </Tabs>

@@ -12,6 +12,7 @@ import {
 import { useToast } from '@/components/ui/use-toast'
 import { OrganizationUnitDto } from '@/lib/api/admin/organization-unit-api'
 import { useDeleteOrganizationUnit } from '@/lib/hooks/useOrganizationUnits'
+import { useLanguage } from '@/context/LanguageContext'
 
 type Props = {
   unit: OrganizationUnitDto
@@ -20,15 +21,16 @@ type Props = {
 
 export const DeleteOrganizationUnit = ({ unit, onDismiss }: Props) => {
   const { toast } = useToast()
+  const { t } = useLanguage()
   const del = useDeleteOrganizationUnit()
 
   const handleDelete = async () => {
     try {
       await del.mutateAsync(unit.id)
-      toast({ title: 'Đã xoá', description: `Đã xoá "${unit.displayName}"` })
+      toast({ title: t('common.success'), description: t('ou.deleteSuccess') })
       onDismiss()
     } catch {
-      toast({ title: 'Lỗi', description: 'Không thể xoá đơn vị tổ chức', variant: 'destructive' })
+      toast({ title: t('common.error'), description: t('ou.deleteError'), variant: 'destructive' })
     }
   }
 
@@ -36,24 +38,24 @@ export const DeleteOrganizationUnit = ({ unit, onDismiss }: Props) => {
     <AlertDialog open onOpenChange={onDismiss}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Xoá đơn vị tổ chức</AlertDialogTitle>
+          <AlertDialogTitle>{t('ou.deleteTitle')}</AlertDialogTitle>
           <AlertDialogDescription>
-            Bạn có chắc muốn xoá <strong>{unit.displayName}</strong>?
+            {t('ou.deleteConfirm', { name: unit.displayName ?? '' })}
             {(unit.children?.length ?? 0) > 0 && (
               <span className="block mt-2 text-destructive font-medium">
-                Cảnh báo: Đơn vị này có {unit.children!.length} đơn vị con sẽ bị xoá theo.
+                {unit.children!.length}
               </span>
             )}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>Huỷ</AlertDialogCancel>
+          <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
           <AlertDialogAction
             onClick={handleDelete}
             className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             disabled={del.isPending}
           >
-            {del.isPending ? 'Đang xoá...' : 'Xoá'}
+            {del.isPending ? t('common.loading') : t('common.delete')}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

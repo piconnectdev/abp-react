@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { useToast } from '@/components/ui/use-toast'
+import { useLanguage } from '@/context/LanguageContext'
 import { QueryNames } from '@/lib/hooks/QueryConstants'
 import { useGrantedPolicies } from '@/lib/hooks/useGrantedPolicies'
 import { Permissions } from '@/lib/utils'
@@ -28,6 +29,7 @@ export const AddUser = ({}: AddUserProps) => {
   const [isActive, setIsActive] = useState(true)
   const [lockoutEnabled, setLockoutEnabled] = useState(true)
   const { toast } = useToast()
+  const { t } = useLanguage()
   const queryClient = useQueryClient()
   const { handleSubmit, register } = useForm()
   const onSubmit = async (data: any) => {
@@ -40,8 +42,8 @@ export const AddUser = ({}: AddUserProps) => {
         body: user,
       })
       toast({
-        title: 'Success',
-        description: 'User Created Successfully',
+        title: t('common.success'),
+        description: t('user.addSuccess'),
         variant: 'default',
       })
       queryClient.invalidateQueries({ queryKey: [QueryNames.GetUsers] })
@@ -49,8 +51,8 @@ export const AddUser = ({}: AddUserProps) => {
     } catch (err: unknown) {
       if (err instanceof Error) {
         toast({
-          title: 'Failed',
-          description: "User creation wasn&apos;t successful.",
+          title: t('common.error'),
+          description: t('user.addError'),
           variant: 'destructive',
         })
       }
@@ -61,26 +63,26 @@ export const AddUser = ({}: AddUserProps) => {
     <section className="p-3">
       <Dialog open={open} onOpenChange={setOpen}>
         <section className="flex items-center justify-between pb-5">
-          <h3 className="title m-1 grow truncate p-0 text-xl font-bold">User Management</h3>
+          <h3 className="title m-1 grow truncate p-0 text-xl font-bold">{t('user.title')}</h3>
           {can(Permissions.USERS_CREATE) && (
             <Button onClick={() => setOpen(true)}>
               <Plus width={18} height={18} />
-              <span className="hidden truncate sm:inline">Create New User</span>
+              <span className="hidden truncate sm:inline">{t('user.createNew')}</span>
             </Button>
           )}
         </section>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Create a New User</DialogTitle>
+            <DialogTitle>{t('user.createNew')}</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSubmit(onSubmit)}>
             <section className="flex w-full flex-col space-y-5">
-              <Input required {...register('username')} placeholder="User name" />
-              <Input required type="password" {...register('password')} placeholder="Password" />
-              <Input placeholder="Name" {...register('name')} />
-              <Input placeholder="Surname" {...register('surname')} />
-              <Input required placeholder="Email address" {...register('email')} />
-              <Input placeholder="Phone Number" {...register('phoneNumber')} />
+              <Input required {...register('username')} placeholder={t('user.userName')} />
+              <Input required type="password" {...register('password')} placeholder={t('user.password')} />
+              <Input placeholder={t('user.firstName')} {...register('name')} />
+              <Input placeholder={t('user.lastName')} {...register('surname')} />
+              <Input required placeholder={t('user.email')} {...register('email')} />
+              <Input placeholder={t('user.phone')} {...register('phoneNumber')} />
               <div className={classNames('flex items-center space-x-2 pb-2')}>
                 <Checkbox
                   id="isActive"
@@ -90,7 +92,7 @@ export const AddUser = ({}: AddUserProps) => {
                   onCheckedChange={(checked) => setIsActive(!!checked.valueOf())}
                 />
                 <label htmlFor="isActive" className="text-sm font-medium leading-none">
-                  Active
+                  {t('user.isActive')}
                 </label>
               </div>
               <div className={classNames('flex items-center space-x-2 pb-2')}>
@@ -102,7 +104,7 @@ export const AddUser = ({}: AddUserProps) => {
                   onCheckedChange={(checked) => setLockoutEnabled(!!checked.valueOf())}
                 />
                 <label htmlFor="lockoutEnabled" className="text-sm font-medium leading-none">
-                  Lock account after failed login attempts
+                  {t('user.lockout')}
                 </label>
               </div>
             </section>
@@ -113,9 +115,9 @@ export const AddUser = ({}: AddUserProps) => {
                   setOpen(false)
                 }}
               >
-                Cancel
+                {t('common.cancel')}
               </Button>
-              <Button type="submit">Save</Button>
+              <Button type="submit">{t('common.save')}</Button>
             </DialogFooter>
           </form>
         </DialogContent>

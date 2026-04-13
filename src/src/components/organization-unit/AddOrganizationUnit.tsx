@@ -19,6 +19,7 @@ import {
 import { useCreateOrganizationUnit } from '@/lib/hooks/useOrganizationUnits'
 import { useToast } from '@/components/ui/use-toast'
 import { OrganizationUnitDto } from '@/lib/api/admin/organization-unit-api'
+import { useLanguage } from '@/context/LanguageContext'
 import { useState } from 'react'
 
 type Props = {
@@ -31,6 +32,7 @@ export const AddOrganizationUnit = ({ allUnits, defaultParentId, onDismiss }: Pr
   const [displayName, setDisplayName] = useState('')
   const [parentId, setParentId] = useState<string | null>(defaultParentId ?? null)
   const { toast } = useToast()
+  const { t } = useLanguage()
   const create = useCreateOrganizationUnit()
 
   const flatUnits = flattenUnits(allUnits)
@@ -39,10 +41,10 @@ export const AddOrganizationUnit = ({ allUnits, defaultParentId, onDismiss }: Pr
     if (!displayName.trim()) return
     try {
       await create.mutateAsync({ displayName: displayName.trim(), parentId })
-      toast({ title: 'Thành công', description: 'Đã tạo đơn vị tổ chức' })
+      toast({ title: t('common.success'), description: t('ou.addSuccess') })
       onDismiss()
     } catch {
-      toast({ title: 'Lỗi', description: 'Không thể tạo đơn vị tổ chức', variant: 'destructive' })
+      toast({ title: t('common.error'), description: t('ou.addError'), variant: 'destructive' })
     }
   }
 
@@ -50,29 +52,29 @@ export const AddOrganizationUnit = ({ allUnits, defaultParentId, onDismiss }: Pr
     <Dialog open onOpenChange={onDismiss}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Thêm đơn vị tổ chức</DialogTitle>
+          <DialogTitle>{t('ou.add')}</DialogTitle>
         </DialogHeader>
         <div className="space-y-4 py-2">
           <div className="space-y-1">
-            <Label>Tên đơn vị *</Label>
+            <Label>{t('ou.displayName')} *</Label>
             <Input
-              placeholder="Nhập tên đơn vị"
+              placeholder={t('ou.displayNamePlaceholder')}
               value={displayName}
               onChange={(e) => setDisplayName(e.target.value)}
               autoFocus
             />
           </div>
           <div className="space-y-1">
-            <Label>Đơn vị cha (tuỳ chọn)</Label>
+            <Label>{t('ou.parentUnit')}</Label>
             <Select
               value={parentId ?? 'none'}
               onValueChange={(v) => setParentId(v === 'none' ? null : v)}
             >
               <SelectTrigger>
-                <SelectValue placeholder="Không có (đơn vị gốc)" />
+                <SelectValue placeholder={t('ou.rootLevel')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="none">Không có (đơn vị gốc)</SelectItem>
+                <SelectItem value="none">{t('ou.rootLevel')}</SelectItem>
                 {flatUnits.map((u) => (
                   <SelectItem key={u.id} value={u.id}>
                     {u.indent}{u.displayName}
@@ -83,9 +85,9 @@ export const AddOrganizationUnit = ({ allUnits, defaultParentId, onDismiss }: Pr
           </div>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={onDismiss}>Huỷ</Button>
+          <Button variant="outline" onClick={onDismiss}>{t('common.cancel')}</Button>
           <Button onClick={handleSave} disabled={!displayName.trim() || create.isPending}>
-            {create.isPending ? 'Đang lưu...' : 'Lưu'}
+            {create.isPending ? t('common.loading') : t('common.save')}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -99,7 +101,7 @@ function flattenUnits(
 ): { id: string; displayName: string; indent: string }[] {
   const result: { id: string; displayName: string; indent: string }[] = []
   for (const u of units) {
-    result.push({ id: u.id, displayName: u.displayName, indent: '　'.repeat(level) })
+    result.push({ id: u.id, displayName: u.displayName ?? '', indent: '　'.repeat(level) })
     if (u.children?.length) {
       result.push(...flattenUnits(u.children, level + 1))
     }

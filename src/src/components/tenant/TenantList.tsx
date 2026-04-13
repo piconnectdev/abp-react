@@ -15,9 +15,11 @@ import { PermissionActions } from '../permission/PermissionActions'
 import { DeleteTenant } from './DeleteTenant'
 import { FeatureList } from './FeatureList'
 import { TenantEdit, TenantExtraProperties } from './TenantEdit'
+import { useLanguage } from '@/context/LanguageContext'
 
 export const TenantList = () => {
   const { toast } = useToast()
+  const { t } = useLanguage()
   const queryClient = useQueryClient()
   const [searchStr, setSearchStr] = useState<string | undefined>()
   const [tenantActionDialog, setTenantActionDialog] = useState<{
@@ -43,11 +45,11 @@ export const TenantList = () => {
   const defaultColumns: ColumnDef<TenantDto>[] = useMemo(
     () => [
       {
-        header: 'Tenant Management',
+        header: t('tenant.title'),
         columns: [
           {
             accessorKey: 'actions',
-            header: 'Actions',
+            header: t('common.actions'),
             cell: (info) => {
               return (
                 <PermissionActions
@@ -107,7 +109,7 @@ export const TenantList = () => {
           },
           {
             accessorKey: 'name',
-            header: 'Tenant Name',
+            header: t('tenant.tenantName'),
             cell: (info) => info.getValue(),
           },
         ],

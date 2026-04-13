@@ -16,6 +16,7 @@ import {
   useRemoveOURole,
 } from '@/lib/hooks/useOrganizationUnits'
 import { useRoles } from '@/lib/hooks/useRoles'
+import { useLanguage } from '@/context/LanguageContext'
 import { Loader2, ShieldCheck } from 'lucide-react'
 
 type Props = {
@@ -30,6 +31,7 @@ export const OURoleList = ({ unit, onDismiss }: Props) => {
   const addRoles = useAddOURoles()
   const removeRole = useRemoveOURole()
   const { toast } = useToast()
+  const { t } = useLanguage()
 
   const currentRoleIds = new Set(ouRolesData?.items?.map((r) => r.id) ?? [])
   const isLoading = ouRolesLoading || allRolesLoading
@@ -39,13 +41,13 @@ export const OURoleList = ({ unit, onDismiss }: Props) => {
     try {
       if (isChecked) {
         await addRoles.mutateAsync({ id: unit.id, roleIds: [roleId] })
-        toast({ title: 'Đã thêm', description: `Đã gán role ${roleName}` })
+        toast({ title: t('common.success'), description: t('ou.roleAdded', { name: roleName }) })
       } else {
         await removeRole.mutateAsync({ id: unit.id, roleId })
-        toast({ title: 'Đã xoá', description: `Đã bỏ role ${roleName}` })
+        toast({ title: t('common.success'), description: t('ou.roleRemoved', { name: roleName }) })
       }
     } catch {
-      toast({ title: 'Lỗi', description: 'Không thể cập nhật role', variant: 'destructive' })
+      toast({ title: t('common.error'), description: t('ou.roleUpdateError'), variant: 'destructive' })
     }
   }
 
@@ -55,7 +57,7 @@ export const OURoleList = ({ unit, onDismiss }: Props) => {
         <SheetHeader>
           <SheetTitle className="flex items-center gap-2">
             <ShieldCheck className="h-5 w-5" />
-            Roles: {unit.displayName}
+            {t('ou.rolesTitle', { name: unit.displayName ?? '' })}
           </SheetTitle>
         </SheetHeader>
 
@@ -85,7 +87,7 @@ export const OURoleList = ({ unit, onDismiss }: Props) => {
                 </div>
               ))}
               {(allRolesData?.items ?? []).length === 0 && (
-                <p className="text-sm text-muted-foreground text-center py-4">Không có role nào</p>
+                <p className="text-sm text-muted-foreground text-center py-4">{t('ou.noRoles')}</p>
               )}
             </div>
           )}
@@ -93,7 +95,7 @@ export const OURoleList = ({ unit, onDismiss }: Props) => {
 
         <div className="mt-4">
           <Button variant="outline" onClick={onDismiss}>
-            Đóng
+            {t('common.close')}
           </Button>
         </div>
       </SheetContent>

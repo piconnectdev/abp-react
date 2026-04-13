@@ -16,6 +16,7 @@ import { useState } from 'react'
 import ClientLink from '../ui/client-link'
 import useSession from '@/useSession'
 import { TenantSwitcher } from '@/components/tenant/TenantSwitcher'
+import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher'
 
 export default function SideNavBarMobile() {
   const pathname = usePathname()
@@ -162,6 +163,7 @@ export default function SideNavBarMobile() {
         <form></form>
       </div>
       <TenantSwitcher />
+      <LanguageSwitcher />
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" size="sm" className="relative h-8 w-8 rounded-full">

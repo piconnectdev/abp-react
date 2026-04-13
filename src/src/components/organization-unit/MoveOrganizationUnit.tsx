@@ -18,6 +18,7 @@ import {
 import { useToast } from '@/components/ui/use-toast'
 import { OrganizationUnitDto } from '@/lib/api/admin/organization-unit-api'
 import { useMoveOrganizationUnit } from '@/lib/hooks/useOrganizationUnits'
+import { useLanguage } from '@/context/LanguageContext'
 import { useState } from 'react'
 
 type Props = {
@@ -47,6 +48,7 @@ export const MoveOrganizationUnit = ({ unit, allUnits, onDismiss }: Props) => {
   const [selectedParentId, setSelectedParentId] = useState<string>(unit.parentId ?? '__root__')
   const move = useMoveOrganizationUnit()
   const { toast } = useToast()
+  const { t } = useLanguage()
 
   const candidates = flattenExcluding(allUnits, unit.id)
 
@@ -58,10 +60,10 @@ export const MoveOrganizationUnit = ({ unit, allUnits, onDismiss }: Props) => {
     }
     try {
       await move.mutateAsync({ id: unit.id, parentId: newParentId })
-      toast({ title: 'Đã di chuyển', description: `Đã di chuyển "${unit.displayName}"` })
+      toast({ title: t('common.success'), description: t('ou.moveSuccess') })
       onDismiss()
     } catch {
-      toast({ title: 'Lỗi', description: 'Không thể di chuyển đơn vị', variant: 'destructive' })
+      toast({ title: t('common.error'), description: t('ou.moveError'), variant: 'destructive' })
     }
   }
 
@@ -69,16 +71,16 @@ export const MoveOrganizationUnit = ({ unit, allUnits, onDismiss }: Props) => {
     <Dialog open onOpenChange={onDismiss}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Di chuyển: {unit.displayName}</DialogTitle>
+          <DialogTitle>{t('ou.moveTitle')}: {unit.displayName}</DialogTitle>
         </DialogHeader>
         <div className="space-y-3 py-2">
-          <Label>Đơn vị cha mới</Label>
+          <Label>{t('ou.parentUnit')}</Label>
           <Select value={selectedParentId} onValueChange={setSelectedParentId}>
             <SelectTrigger>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="__root__">(Gốc — không có cha)</SelectItem>
+              <SelectItem value="__root__">{t('ou.rootLevel')}</SelectItem>
               {candidates.map((u) => (
                 <SelectItem key={u.id} value={u.id}>
                   {u.code} — {u.displayName}
@@ -89,10 +91,10 @@ export const MoveOrganizationUnit = ({ unit, allUnits, onDismiss }: Props) => {
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={onDismiss}>
-            Huỷ
+            {t('common.cancel')}
           </Button>
           <Button onClick={handleMove} disabled={move.isPending}>
-            {move.isPending ? 'Đang di chuyển...' : 'Di chuyển'}
+            {move.isPending ? t('common.loading') : t('ou.move')}
           </Button>
         </DialogFooter>
       </DialogContent>
