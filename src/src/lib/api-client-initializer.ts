@@ -1,6 +1,5 @@
 // /src/lib/api-client-initializer.ts
 import { client as adminClient } from '@/client'
-import { authClientConfig } from '@/config'
 import { client as coreClient } from '@/core-client'
 import { tokenStorage } from '@/lib/api/token-storage'
 import { getUserManager } from './oidc-client'
@@ -26,7 +25,8 @@ export function configureAdminApiClient() {
 
   // Ghi đè lại baseUrl của client mặc định
   adminClient.setConfig({
-    baseUrl: authClientConfig.url,
+    //baseUrl: authClientConfig.url,
+    baseUrl: process.env.NEXT_PUBLIC_API_BASE_URL,
   })
 
   // Ghi đè lại baseUrl của core-client mặc định

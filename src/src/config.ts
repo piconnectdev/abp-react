@@ -7,10 +7,10 @@ import React from 'react'
  * It was created for convenience. If you don't like it, you can remove it and update the codebase everywhere it is used.
  */
 export const authClientConfig = {
-  url: process.env.NEXT_PUBLIC_API_URL,
-  audience: process.env.NEXT_PUBLIC_API_URL,
-  client_id: process.env.NEXT_PUBLIC_CLIENT_ID,
-  scope: process.env.NEXT_PUBLIC_SCOPE,
+  url: process.env.NEXT_PUBLIC_OIDC_AUTHORITY,
+  audience: process.env.NEXT_PUBLIC_OIDC_AUTHORITY,
+  client_id: process.env.NEXT_PUBLIC_OIDC_CLIENT_ID,
+  scope: process.env.NEXT_PUBLIC_OIDC_SCOPE,
   redirect_uri: `${process.env.NEXT_PUBLIC_APP_URL}/auth/openiddict`,
   post_logout_redirect_uri: `${process.env.NEXT_PUBLIC_APP_URL}`,
   response_type: 'code',

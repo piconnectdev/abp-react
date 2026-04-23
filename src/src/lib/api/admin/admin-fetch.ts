@@ -1,4 +1,3 @@
-import { authClientConfig } from '@/config'
 import { parseApiError } from '@/lib/api/parse-api-error'
 import { tokenStorage } from '@/lib/api/token-storage'
 import { getUserManager } from '@/lib/oidc-client'
@@ -22,7 +21,8 @@ async function getHostHeaders(): Promise<Record<string, string>> {
   return headers
 }
 
-const baseUrl = () => authClientConfig.url!
+//const baseUrl = () => authClientConfig.base_url!
+const baseUrl = () => process.env.NEXT_PUBLIC_API_BASE_URL!
 
 function buildUrl(path: string, params?: Record<string, unknown>): string {
   const url = new URL(`${baseUrl()}${path}`)
