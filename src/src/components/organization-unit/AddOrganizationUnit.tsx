@@ -16,9 +16,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { useCreateOrganizationUnit } from '@/lib/hooks/useOrganizationUnits'
 import { useToast } from '@/components/ui/use-toast'
 import { OrganizationUnitDto } from '@/lib/api/admin/organization-unit-api'
+import { useCreateOrganizationUnit } from '@/lib/hooks/useOrganizationUnits'
 import { useState } from 'react'
 
 type Props = {
@@ -75,7 +75,8 @@ export const AddOrganizationUnit = ({ allUnits, defaultParentId, onDismiss }: Pr
                 <SelectItem value="none">Không có (đơn vị gốc)</SelectItem>
                 {flatUnits.map((u) => (
                   <SelectItem key={u.id} value={u.id}>
-                    {u.indent}{u.displayName}
+                    {u.indent}
+                    {u.displayName}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -83,7 +84,9 @@ export const AddOrganizationUnit = ({ allUnits, defaultParentId, onDismiss }: Pr
           </div>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={onDismiss}>Huỷ</Button>
+          <Button variant="outline" onClick={onDismiss}>
+            Huỷ
+          </Button>
           <Button onClick={handleSave} disabled={!displayName.trim() || create.isPending}>
             {create.isPending ? 'Đang lưu...' : 'Lưu'}
           </Button>
@@ -99,7 +102,7 @@ function flattenUnits(
 ): { id: string; displayName: string; indent: string }[] {
   const result: { id: string; displayName: string; indent: string }[] = []
   for (const u of units) {
-    result.push({ id: u.id, displayName: u.displayName, indent: '　'.repeat(level) })
+    result.push({ id: u.id, displayName: u.displayName ?? '', indent: '　'.repeat(level) })
     if (u.children?.length) {
       result.push(...flattenUnits(u.children, level + 1))
     }
